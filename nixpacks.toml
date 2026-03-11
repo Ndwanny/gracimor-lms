@@ -10,17 +10,17 @@ nixPkgs = [
   "php82Extensions.bcmath",
   "php82Extensions.tokenizer",
   "php82Extensions.fileinfo",
+  "php82Extensions.openssl",
+  "php82Extensions.gd",
   "composer"
 ]
 
 [phases.build]
 cmds = [
-  "composer install --no-dev --optimize-autoloader --no-interaction",
-  "php artisan config:cache",
-  "php artisan route:cache",
-  "php artisan view:cache",
-  "php artisan storage:link || true"
+  "composer install --no-dev --optimize-autoloader --no-interaction"
 ]
 
+# NOTE: config:cache / route:cache / migrate all run at START time (not build)
+# so that Railway's runtime env vars (DB_HOST, APP_KEY, etc.) are available.
 [start]
-cmd = "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+cmd = "php artisan storage:link --relative 2>/dev/null || true && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
