@@ -1,0 +1,2 @@
+<!-- Gracimor Email Layout -->
+{{ $slot }}

@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -r \":*)",
+      "Bash(xargs sed -i 's/GRASSEMA/GRACIMOR/g; s/Grassema/Gracimor/g; s/grassema/gracimor/g')",
+      "Bash(mv app/Http/Requests/GrassemaFormRequest.php app/Http/Requests/GracimoreFormRequest.php)",
+      "Bash(mv config/grassema.php config/gracimor.php)",
+      "Bash(mv tests/Feature/GrassemaTestCase.php tests/Feature/GracimoreTestCase.php)",
+      "Bash(ls app/Http/Requests/Gracimor* config/gracimor.php tests/Feature/Gracimor*)",
+      "Read(//c/Users/HP/.claude/projects/c--Users-HP-Documents-dev-lms-lms/8a6dc467-a491-4d0d-9a5a-7410bd9b9b3c/tool-results/**)",
+      "Bash(php artisan:*)",
+      "Bash(mysql -u root -e \"DROP DATABASE IF EXISTS grassema; CREATE DATABASE grassema CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(where mysql:*)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/xampp/mysql/bin/**)",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"DROP DATABASE IF EXISTS grassema; CREATE DATABASE grassema CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"SELECT @@datadir;\")",
+      "Read(//c/xampp/mysql/data/grassema/**)",
+      "Bash(rm -rf \"C:/xampp/mysql/data/grassema\")",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"CREATE DATABASE grassema CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root grassema -e \":*)",
+      "Bash(curl -s -X POST http://localhost:8000/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"email\"\"\"\":\"\"\"\"superadmin@gracimor.co.zm\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"SuperAdmin1\"\"\"\"}')",
+      "Bash(TOKEN=\"1|LWbPKoYPHy04ISWQhec01SPY7T8yQ5LG3iEb0hyF5864f850\" __NEW_LINE_86ac00bb8aeea407__ curl -s http://localhost:8000/api/dashboard/stats -H \"Authorization: Bearer $TOKEN\" -H \"Accept: application/json\")",
+      "Bash(TOKEN=\"1|LWbPKoYPHy04ISWQhec01SPY7T8yQ5LG3iEb0hyF5864f850\")",
+      "Bash(curl -s \"http://localhost:8000/api/dashboard/stats\" -H \"Authorization: Bearer $TOKEN\" -H \"Accept: application/json\")",
+      "Bash(curl -s \"http://localhost:8000/api/borrowers?per_page=3\" -H \"Authorization: Bearer $TOKEN\" -H \"Accept: application/json\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8000/login\")",
+      "Bash(grep -l \"lms_token\\\\|auth guard\\\\|authHeaders\" c:/Users/HP/Documents/dev/lms/lms/resources/views/pages/*.blade.php)",
+      "Bash(grep -c \"LMS Auth Guard\" c:/Users/HP/Documents/dev/lms/lms/resources/views/pages/*.blade.php)",
+      "Bash(powershell -Command \":*)",
+      "Bash(php -r:*)",
+      "Bash(find c:/Users/HP/Documents/dev/lms/lms/database -name *seeder* -o -name *Seeder*)",
+      "Bash(find c:/Users/HP/Documents/dev/lms/lms/app/Events -name *.php)",
+      "Bash(find c:/Users/HP/Documents/dev/lms/lms/app/Mail -name *.php)",
+      "Bash(grep -n \"eventServiceProvider\\\\|EventServiceProvider\" c:/Users/HP/Documents/dev/lms/lms/app/Providers*)",
+      "Bash(php -r \"require ''''vendor/autoload.php''''; $app = require ''''bootstrap/app.php''''; $app->make\\(''''Illuminate\\\\Contracts\\\\Console\\\\Kernel''''\\)->bootstrap\\(\\); echo ''''OK'''';\")",
+      "Bash(grep -r \"SESSION_DRIVER\\\\|FILESYSTEM\" c:UsersHPDocumentsdevlmslms.env*)"
+    ]
+  }
+}
