@@ -48,6 +48,10 @@ class Loan extends Model
         'approved_by',
         'approved_at',
         'disbursed_by',
+        'borrower_signature',
+        'officer_signature',
+        'borrower_signed_at',
+        'officer_signed_at',
     ];
 
     protected function casts(): array

@@ -139,7 +139,7 @@ class LoanController extends Controller
 
         $request->validate(['approval_notes' => 'nullable|string|max:1000']);
 
-        $loan = $this->loanService->approve($loan, Auth::user(), $request->approval_notes);
+        $loan = $this->loanService->approve($loan, Auth::user(), null, $request->approval_notes ?? '');
 
         return response()->json([
             'message' => 'Loan approved.',
@@ -336,5 +336,47 @@ class LoanController extends Controller
         );
 
         return response()->json($result);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // POST /api/loans/{loan}/signatures
+    // Body: { role: 'borrower'|'officer', signature: 'data:image/png;base64,...' }
+    // Save the e-signature for a loan agreement
+    // ──────────────────────────────────────────────────────────────────────────
+    public function saveSignature(Request $request, Loan $loan): JsonResponse
+    {
+        $validated = $request->validate([
+            'role'      => 'required|in:borrower,officer',
+            'signature' => 'required|string|starts_with:data:image/',
+        ]);
+
+        $col   = $validated['role'] . '_signature';
+        $atCol = $validated['role'] . '_signed_at';
+
+        $loan->update([
+            $col   => $validated['signature'],
+            $atCol => now(),
+        ]);
+
+        return response()->json([
+            'message'   => ucfirst($validated['role']) . ' signature saved.',
+            'signed_at' => $loan->fresh()->$atCol,
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // DELETE /api/loans/{loan}/signatures/{role}
+    // Clear a saved signature for this loan
+    // ──────────────────────────────────────────────────────────────────────────
+    public function clearSignature(Loan $loan, string $role): JsonResponse
+    {
+        abort_unless(in_array($role, ['borrower', 'officer']), 422, 'Invalid role.');
+
+        $loan->update([
+            $role . '_signature' => null,
+            $role . '_signed_at' => null,
+        ]);
+
+        return response()->json(['message' => ucfirst($role) . ' signature cleared.']);
     }
 }

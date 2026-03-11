@@ -192,6 +192,10 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         Route::post('{loan}/write-off',          [LoanController::class, 'writeOff'])->name('write-off')
              ->middleware('role:superadmin,ceo,manager');
 
+        // Agreement e-signatures
+        Route::post('{loan}/signatures',         [LoanController::class, 'saveSignature'])->name('signatures.save');
+        Route::delete('{loan}/signatures/{role}',[LoanController::class, 'clearSignature'])->name('signatures.clear');
+
         // Guarantors (nested under loans)
         Route::get('{loan}/guarantors',          [GuarantorController::class, 'index'])->name('guarantors.index');
         Route::post('{loan}/guarantors',         [GuarantorController::class, 'store'])->name('guarantors.store');

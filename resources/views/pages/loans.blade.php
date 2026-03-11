@@ -6,6 +6,7 @@
   <title>Gracimor LMS — Loans</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
   <style>
     :root {
@@ -173,6 +174,95 @@
     .prog-bar{height:5px;background:var(--navy-line);border-radius:99px;overflow:hidden}
     .prog-fill{height:100%;border-radius:99px}
 
+    /* ── Agreement document ── */
+    #agreement-doc{background:#fff;color:#111;font-family:Georgia,serif;padding:40px;border-radius:10px;border:1px solid var(--navy-line);line-height:1.6;font-size:13.5px}
+    .agr-header{text-align:center;border-bottom:3px double #0B8FAC;padding-bottom:20px;margin-bottom:24px}
+    .agr-logo{font-size:26px;font-weight:700;letter-spacing:.04em;color:#0B8FAC}
+    .agr-sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#444;margin-top:2px}
+    .agr-title{font-size:20px;font-weight:700;margin-top:12px;color:#111}
+    .agr-ref{font-size:12px;color:#555;margin-top:4px}
+    .agr-mono{font-family:monospace;font-weight:700}
+    .agr-parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+    .agr-party-box{background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:16px}
+    .agr-party-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#0B8FAC;margin-bottom:8px}
+    .agr-party-name{font-weight:700;font-size:15px}
+    .agr-party-row{font-size:12px;color:#444;margin-top:4px}
+    .agr-section{margin-bottom:24px}
+    .agr-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0B8FAC;padding-bottom:6px;margin-bottom:12px;color:#0B8FAC}
+    .agr-terms-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .agr-terms-tbl{width:100%;border-collapse:collapse;font-size:13px}
+    .agr-terms-tbl td{padding:8px 12px;border:1px solid #dee2e6}
+    .agr-td-lbl{font-weight:600;width:25%;white-space:nowrap}
+    .agr-td-val{width:25%}
+    .agr-row-shaded{background:#f8f9fa}
+    .agr-blue{font-weight:700;color:#0B8FAC}
+    .agr-red{color:#c0392b}
+    .agr-green{color:#16a085}
+    .agr-bold{font-weight:700}
+    .agr-tr{text-align:right}
+    .agr-sched-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .agr-sched-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:420px}
+    .agr-sched-tbl th{padding:8px 10px;background:#0B8FAC;color:#fff;border:1px solid #0B8FAC;font-size:12px}
+    .agr-sched-tbl td{padding:7px 10px;border:1px solid #dee2e6;font-size:12px}
+    .agr-tfoot{background:#e8f5e9;font-weight:700}
+    .agr-terms-list{font-size:12px;color:#333;padding-left:18px;margin:0}
+    .agr-terms-list li{margin-bottom:6px}
+    .agr-sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+    .agr-sig-block{}
+    .agr-sig-role{font-size:12px;font-weight:600;margin-bottom:4px}
+    .agr-sig-line{border-bottom:1px solid #555;height:48px;margin-bottom:6px}
+    .agr-sig-name{font-size:12px;color:#333}
+    .agr-sig-sub{font-size:11px;color:#666}
+    .agr-sig-fields{display:flex;gap:20px;margin-top:12px}
+    .agr-sig-field{flex:1}
+    .agr-sig-field-lbl{font-size:11px;color:#666;margin-bottom:2px}
+    .agr-sig-field-line{border-bottom:1px solid #aaa;height:24px}
+    .agr-footer{border-top:1px solid #dee2e6;padding-top:14px;text-align:center;font-size:11px;color:#888}
+    .agr-footer div+div{margin-top:2px}
+    .agr-header-inner{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:6px}
+    .agr-logo-img{height:56px;width:auto;object-fit:contain;flex-shrink:0}
+    .agr-header-text{text-align:center}
+    .agr-legal-ref{font-size:11px;color:#666;margin-top:3px;font-style:italic}
+    .agr-ref-block{margin-top:8px;padding-top:8px;border-top:1px solid #e5e7eb}
+    .agr-preamble{font-size:13px;color:#333;margin-bottom:10px}
+    .agr-para{font-size:13px;color:#333;line-height:1.6;margin-bottom:8px}
+    .agr-sub-heading{font-size:13px;margin-top:10px;margin-bottom:6px}
+    .agr-note{font-size:11px;color:#666;font-style:italic;background:#f8f9fa;padding:8px;border-radius:4px;border-left:3px solid #0B8FAC}
+    .agr-italic{font-style:italic}
+    .agr-blank{border-bottom:1px solid #333;display:inline-block;min-width:120px;padding-bottom:1px}
+    .agr-interest-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+    .agr-interest-item{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:10px 14px}
+    .agr-interest-lbl{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+    .agr-interest-val{font-size:15px;font-weight:700;color:#0B2540}
+    .agr-bullet-list{font-size:13px;color:#333;padding-left:20px;margin:6px 0}
+    .agr-bullet-list li{margin-bottom:5px;line-height:1.6}
+    .agr-alpha-list{list-style-type:lower-alpha}
+    .agr-th{background:#0B8FAC;color:#fff;padding:8px 10px;text-align:left;font-size:12px;font-weight:700}
+    .agr-tbl-head tr th:first-child{width:35%}
+    .agr-sig-section-sub{margin-top:20px;padding-top:16px;border-top:1px dashed #dee2e6}
+    .agr-sig-sub-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0B8FAC;margin-bottom:10px}
+    .agr-acknowledgement{background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:14px 16px;margin-top:20px}
+
+    /* ── e-Signature pad ── */
+    .agr-sigpad-wrap{border:2px dashed #bbb;border-radius:8px;background:#fafafa;margin-bottom:8px;overflow:hidden;position:relative}
+    .agr-sigpad-hint{font-size:10px;color:#999;text-align:center;padding:6px 0 0;pointer-events:none;user-select:none}
+    .agr-sigpad-canvas{display:block;width:100%;height:110px;cursor:crosshair;touch-action:none}
+    .agr-sigpad-wrap:focus-within{border-color:#0B8FAC;border-style:solid}
+    .agr-sigpad-btns{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-top:1px solid #e0e0e0;background:#f5f5f5}
+    .agr-sig-clear-btn{font-size:11px;padding:4px 10px;border:1px solid #ccc;border-radius:5px;background:#fff;color:#666;cursor:pointer;font-family:inherit}
+    .agr-sig-clear-btn:hover{background:#fee2e2;border-color:#fca5a5;color:#dc2626}
+    .agr-sig-confirm-btn{font-size:11px;padding:4px 12px;border:none;border-radius:5px;background:#0B8FAC;color:#fff;cursor:pointer;font-family:inherit;font-weight:600}
+    .agr-sig-confirm-btn:hover{background:#076E86}
+    .agr-sigpad-done{margin-bottom:8px;position:relative}
+    .agr-sigpad-done img{display:block;width:100%;height:110px;object-fit:contain;border:1px solid #dee2e6;border-radius:8px;background:#fff}
+    .agr-sig-done-bar{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+    .agr-sig-done-lbl{font-size:10px;color:#16a085;font-weight:700;display:flex;align-items:center;gap:4px}
+    .agr-sig-resign-btn{font-size:10px;padding:3px 8px;border:1px solid #ccc;border-radius:4px;background:#fff;color:#666;cursor:pointer;font-family:inherit}
+    .agr-sig-resign-btn:hover{background:#f3f4f6}
+    .agr-input{border-bottom:1.5px solid #555;min-height:22px;padding:3px 4px;outline:none;font-size:13px;color:#111;font-family:Georgia,serif;line-height:1.4;cursor:text;transition:border-color .15s}
+    .agr-input:empty::before{content:attr(placeholder);color:#bbb;pointer-events:none}
+    .agr-input:focus{border-bottom:2px solid #0B8FAC;background:rgba(11,143,172,.04)}
+
     /* ── Application form ── */
     .steps{display:flex;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:4px}
     .step{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -245,12 +335,13 @@
 
   <style id="lms-responsive">
 /* ══════════════════════════════════════════════════════════════════════════
-   LMS Mobile Responsive  v3
+   LMS Mobile Responsive  v4
    Breakpoints: 768px (tablet/phone)  |  480px (small phone)
 ══════════════════════════════════════════════════════════════════════════ */
 
-/* body only — NOT html, so inner scroll containers still work */
-body { overflow-x: hidden; }
+/* Lock page-level horizontal scroll on BOTH html and body.
+   Inner containers with overflow-x:auto still scroll independently. */
+html, body { overflow-x: hidden; max-width: 100%; }
 
 * { box-sizing: border-box; }
 
@@ -304,10 +395,10 @@ body { overflow-x: hidden; }
   .sidebar.open { transform: translateX(0); }
   .shell .sidebar { position: fixed !important; }
 
-  /* ── Main: full width ─────────────────────────────────────────────── */
-  .main  { margin-left: 0 !important; width: 100% !important; }
+  /* ── Main: full width, no overflow escape ────────────────────────── */
+  .main  { margin-left: 0 !important; width: 100% !important; max-width: 100vw !important; overflow-x: hidden !important; }
   .shell { flex-direction: column !important; }
-  .shell .main { margin-left: 0 !important; width: 100% !important; }
+  .shell .main { margin-left: 0 !important; width: 100% !important; max-width: 100vw !important; }
 
   /* ── Topbar ───────────────────────────────────────────────────────── */
   .topbar {
@@ -323,10 +414,17 @@ body { overflow-x: hidden; }
   .breadcrumb { font-size: 12px !important; }
 
   /* ── Content area ─────────────────────────────────────────────────── */
-  .content { padding: 12px !important; width: 100% !important; }
+  .content { padding: 12px !important; width: 100% !important; overflow-x: hidden !important; }
 
-  /* Every direct child of content: full width */
-  .content > * { max-width: 100% !important; width: 100% !important; }
+  /* Every direct child of content: full width, never wider than viewport */
+  .content > * { max-width: 100% !important; width: 100% !important; min-width: 0 !important; }
+
+  /* Critical: flex/grid children default to min-width:auto (won't shrink).
+     Set min-width:0 so they can shrink to fit the container. */
+  .loan-layout > *,
+  .loan-layout .card,
+  .loan-layout .flex,
+  .flex.col > * { min-width: 0 !important; }
 
   /* ── ALL grids → single column ────────────────────────────────────── */
   .stats-row,
@@ -410,15 +508,13 @@ body { overflow-x: hidden; }
   [style*="grid-template-columns: 1fr 400"],
   [style*="grid-template-columns:1fr 380"],
   [style*="grid-template-columns:repeat(3"],
-  [style*="grid-template-columns:repeat(4"],
   [style*="grid-template-columns:repeat(5"],
   [style*="grid-template-columns: repeat(3"],
-  [style*="grid-template-columns: repeat(4"],
   [style*="grid-template-columns: repeat(5"] {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
-  /* Exception: 2-col repeat for small grids is OK */
+  /* 4-col → 2×2, 2-col → keep 2-col */
   [style*="grid-template-columns:repeat(2"],
   [style*="grid-template-columns: repeat(2"] {
     grid-template-columns: 1fr 1fr !important;
@@ -435,7 +531,14 @@ body { overflow-x: hidden; }
 
   .tb-right,
   .tb-actions,
-  .hdr-actions { flex-wrap: wrap; gap: 6px !important; }
+  .hdr-actions { flex-wrap: wrap !important; gap: 6px !important; max-width: 100% !important; }
+
+  /* Topbar action button groups (nested flex divs in detail view) */
+  .tb-right > *,
+  .tb-right > div { flex-wrap: wrap !important; max-width: 100% !important; min-width: 0 !important; }
+
+  /* Topbar itself: prevent content from pushing it wider */
+  .topbar { overflow: hidden !important; }
 
   .day-bar { flex-wrap: wrap !important; gap: 12px !important; }
   .day-bar-div { display: none !important; }
@@ -450,10 +553,21 @@ body { overflow-x: hidden; }
   .card, .fsec, .tbl-wrap {
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
     border-radius: 10px !important;
+    /* Use clip instead of hidden: clips visual overflow but allows child
+       scroll containers (like ptabs) to function and show scrollbars */
+    overflow: clip !important;
   }
   .card-body { padding: 14px !important; }
+  .card-body > * { min-width: 0 !important; max-width: 100% !important; }
   .fsec      { margin-bottom: 12px !important; }
+
+  /* Tab content padding area */
+  .loan-layout .card > div[style*="padding"] {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
 
   /* Stat cards */
   .m-stat { padding: 14px !important; }
@@ -561,6 +675,56 @@ body { overflow-x: hidden; }
   /* ── Loan/borrow detail panels ────────────────────────────────────── */
   .loan-hero { padding: 20px !important; }
   .tl-line   { display: none; }
+
+  /* Info rows: prevent value text from pushing width */
+  .info-row { flex-wrap: wrap !important; gap: 4px !important; }
+  .info-val  { max-width: 100% !important; text-align: left !important; word-break: break-word !important; }
+
+  /* ── Loan detail: tab bar scrolls horizontally ─────────────────────── */
+  .ptabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+  .ptabs::-webkit-scrollbar { display: none; }
+  .ptab { white-space: nowrap !important; flex-shrink: 0 !important; font-size: 12px !important; padding: 10px 12px !important; }
+
+  /* ── Schedule table: scroll within its overflow-x:auto wrapper ─────── */
+  .sched-tbl { min-width: 520px !important; }
+  .sched-tbl th, .sched-tbl td {
+    white-space: nowrap !important;
+    font-size: 11px !important;
+    padding: 8px 9px !important;
+  }
+
+  /* ── 4-col repeat grids → 2×2 on mobile ────────────────────────────── */
+  [style*="grid-template-columns:repeat(4"],
+  [style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* ── Agreement doc: mobile ─────────────────────────────────────────── */
+  #agreement-doc { padding: 16px !important; font-size: 12px !important; }
+  .agr-logo  { font-size: 20px !important; }
+  .agr-title { font-size: 16px !important; }
+  .agr-parties { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .agr-party-name { font-size: 13px !important; }
+  .agr-terms-tbl { min-width: 360px; font-size: 11px !important; }
+  .agr-terms-tbl td { padding: 6px 8px !important; font-size: 11px !important; }
+  .agr-td-lbl { white-space: normal !important; }
+  .agr-sched-tbl { font-size: 11px !important; }
+  .agr-sched-tbl th, .agr-sched-tbl td { padding: 6px 7px !important; font-size: 10px !important; }
+  .agr-sig-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .agr-section-title { font-size: 11px !important; }
+
+  /* ── Loan detail: payments/penalties flex rows ──────────────────────── */
+  .loan-layout div[style*="display:flex"][style*="gap:12px"],
+  .loan-layout div[style*="display: flex"][style*="gap: 12px"] {
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+  }
 
   /* ── Overdue detail schedule ──────────────────────────────────────── */
   .ov-detail-grid { grid-template-columns: 1fr !important; }
@@ -690,22 +854,28 @@ body { overflow-x: hidden; }
   .modal-overlay { padding: 8px !important; padding-top: 50px !important; }
 }
 
+/* Ctrl+P fallback — primary PDF path uses the JS print window in printAgreement() */
+@page { size: A4; margin: 13mm 14mm; }
 @media print {
+  .sidebar, .topbar, .no-print { display: none !important; }
+  html, body { overflow: visible !important; height: auto !important; background: #fff !important; }
+  .main { margin-left: 0 !important; overflow: visible !important; }
   body * { visibility: hidden !important; }
   #agreement-doc, #agreement-doc * { visibility: visible !important; }
-  #agreement-doc {
-    position: fixed !important;
-    top: 0 !important; left: 0 !important;
-    width: 100% !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    color: #111 !important;
-    font-size: 12px !important;
+  .main, .content, .loan-layout, .card, .fsec, #loan-agreement-area, .loan-detail {
+    position: static !important; overflow: visible !important;
+    height: auto !important; max-height: none !important; transform: none !important;
   }
-  .no-print { display: none !important; }
+  #agreement-doc {
+    position: absolute !important; top: 0 !important; left: 0 !important;
+    width: 100% !important; transform: none !important;
+    border: none !important; border-radius: 0 !important; box-shadow: none !important;
+    background: #fff !important; font-size: 13px !important;
+  }
+  .agr-parties, .agr-sig-grid { grid-template-columns: 1fr 1fr !important; }
+  .agr-terms-wrap, .agr-sched-wrap { overflow: visible !important; }
+  .agr-terms-tbl, .agr-sched-tbl { min-width: unset !important; }
+  .print-only { display: block !important; visibility: visible !important; }
 }
 </style>
 
@@ -1034,7 +1204,7 @@ body { overflow-x: hidden; }
                     </div>
 
                     <!-- Schedule table -->
-                    <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--navy-line)">
+                    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--navy-line)">
                       <table class="sched-tbl">
                         <thead>
                           <tr>
@@ -1127,179 +1297,416 @@ body { overflow-x: hidden; }
                     </div>
 
                     <!-- Agreement Document -->
-                    <div id="agreement-doc" style="background:#fff;color:#111;font-family:Georgia,serif;padding:40px;border-radius:10px;border:1px solid var(--navy-line);line-height:1.6;font-size:13.5px">
+                    <!-- Agreement Document -->
+                    <div id="agreement-doc">
 
-                      <!-- Header -->
-                      <div style="text-align:center;border-bottom:3px double #0B8FAC;padding-bottom:20px;margin-bottom:24px">
-                        <div style="font-size:26px;font-weight:700;letter-spacing:.04em;color:#0B8FAC">GRACIMOR</div>
-                        <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#444;margin-top:2px">Loans Management System · Zambia</div>
-                        <div style="font-size:20px;font-weight:700;margin-top:12px;color:#111">LOAN AGREEMENT</div>
-                        <div style="font-size:12px;color:#555;margin-top:4px">
-                          Agreement Ref: <span style="font-family:monospace;font-weight:700" x-text="sel.num"></span>
-                          &nbsp;|&nbsp; Date: <span x-text="sel.agreementDate"></span>
+                      <!-- Header with logo -->
+                      <div class="agr-header">
+                        <div class="agr-header-inner">
+                          <img src="/img/loan agreement form logo.png" alt="Gracimor Loans" class="agr-logo-img" onerror="this.style.display='none'">
+                          <div class="agr-header-text">
+                            <div class="agr-logo">GRACIMOR LOANS</div>
+                            <div class="agr-sub">Borrower Loan Agreement</div>
+                            <div class="agr-legal-ref">(Issued under the Money-Lenders Act, Cap 398 of the Laws of Zambia)</div>
+                          </div>
+                        </div>
+                        <div class="agr-ref agr-ref-block">
+                          Agreement Ref: <span class="agr-mono" x-text="sel.num"></span>
+                          &nbsp;·&nbsp; Date: <span x-text="sel.agreementDate"></span>
+                          &nbsp;·&nbsp; Plot No. 2882/B/5/10, Mission Drive, Lusaka, Zambia
                         </div>
                       </div>
 
-                      <!-- Parties -->
-                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
-                        <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:16px">
-                          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#0B8FAC;margin-bottom:8px">LENDER</div>
-                          <div style="font-weight:700;font-size:15px">GRACIMOR Financial Services</div>
-                          <div style="font-size:12px;color:#444;margin-top:4px">Lusaka, Zambia</div>
-                          <div style="font-size:12px;color:#444">Reg. No: GFS/ZM/2024</div>
-                          <div style="font-size:12px;color:#444">Licensed Money Lender</div>
-                        </div>
-                        <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:16px">
-                          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#0B8FAC;margin-bottom:8px">BORROWER</div>
-                          <div style="font-weight:700;font-size:15px" x-text="sel.borrower"></div>
-                          <div style="font-size:12px;color:#444;margin-top:4px">NRC: <span x-text="sel.borrowerNrc"></span></div>
-                          <div style="font-size:12px;color:#444">Phone: <span x-text="sel.borrowerPhone"></span></div>
-                          <div style="font-size:12px;color:#444">Address: <span x-text="sel.borrowerAddress"></span></div>
-                          <template x-if="sel.borrowerEmployer !== '—'">
-                            <div style="font-size:12px;color:#444">Employer: <span x-text="sel.borrowerEmployer"></span></div>
-                          </template>
-                        </div>
-                      </div>
-
-                      <!-- Loan Terms Table -->
-                      <div style="margin-bottom:24px">
-                        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0B8FAC;padding-bottom:6px;margin-bottom:12px;color:#0B8FAC">LOAN TERMS</div>
-                        <table style="width:100%;border-collapse:collapse;font-size:13px">
-                          <tbody>
-                            <tr style="background:#f8f9fa">
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600;width:35%">Loan Number</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-family:monospace" x-text="sel.num"></td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600;width:35%">Loan Product</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.product"></td>
-                            </tr>
-                            <tr>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Principal Amount</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:700;color:#0B8FAC" x-text="sel.principal"></td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Loan Term</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.term"></td>
-                            </tr>
-                            <tr style="background:#f8f9fa">
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Flat Interest Rate</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.rawRate + '% (flat rate for ' + sel.rawTerm + ' month term)'"></td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Monthly Instalment</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:700" x-text="sel.monthly"></td>
-                            </tr>
-                            <tr>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Total Interest Charged</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;color:#c0392b" x-text="sel.totalInterest"></td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Total Repayable</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:700;color:#16a085" x-text="sel.totalRepay"></td>
-                            </tr>
-                            <tr style="background:#f8f9fa">
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Processing Fee</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.fee"></td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Disbursement Date</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.disburseDate || '—'"></td>
-                            </tr>
-                            <tr>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Maturity Date</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.maturity || '—'"></td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6;font-weight:600">Collateral</td>
-                              <td style="padding:8px 12px;border:1px solid #dee2e6" x-text="sel.collateral + ' (Est. ' + sel.collateralVal + ')'"></td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <!-- Repayment Schedule -->
-                      <div style="margin-bottom:24px">
-                        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0B8FAC;padding-bottom:6px;margin-bottom:12px;color:#0B8FAC">REPAYMENT SCHEDULE</div>
-                        <table style="width:100%;border-collapse:collapse;font-size:12px">
-                          <thead>
-                            <tr style="background:#0B8FAC;color:#fff">
-                              <th style="padding:8px 10px;text-align:left;border:1px solid #0B8FAC">#</th>
-                              <th style="padding:8px 10px;text-align:left;border:1px solid #0B8FAC">Due Date</th>
-                              <th style="padding:8px 10px;text-align:right;border:1px solid #0B8FAC">Principal</th>
-                              <th style="padding:8px 10px;text-align:right;border:1px solid #0B8FAC">Interest</th>
-                              <th style="padding:8px 10px;text-align:right;border:1px solid #0B8FAC">Total Due</th>
-                              <th style="padding:8px 10px;text-align:right;border:1px solid #0B8FAC">Balance</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <template x-for="(row, idx) in sel.schedule" :key="row.n">
-                              <tr :style="idx%2===0?'background:#f8f9fa':''">
-                                <td style="padding:7px 10px;border:1px solid #dee2e6;font-family:monospace" x-text="row.n"></td>
-                                <td style="padding:7px 10px;border:1px solid #dee2e6" x-text="row.due"></td>
-                                <td style="padding:7px 10px;border:1px solid #dee2e6;text-align:right;font-family:monospace" x-text="row.prin"></td>
-                                <td style="padding:7px 10px;border:1px solid #dee2e6;text-align:right;font-family:monospace" x-text="row.int"></td>
-                                <td style="padding:7px 10px;border:1px solid #dee2e6;text-align:right;font-family:monospace;font-weight:700" x-text="row.total"></td>
-                                <td style="padding:7px 10px;border:1px solid #dee2e6;text-align:right;font-family:monospace" x-text="row.bal"></td>
-                              </tr>
+                      <!-- Preamble / Parties -->
+                      <div class="agr-section">
+                        <p class="agr-preamble">This Loan Agreement is made between:</p>
+                        <div class="agr-parties">
+                          <div class="agr-party-box">
+                            <div class="agr-party-lbl">LENDER</div>
+                            <div class="agr-party-name">Gracimor Loans</div>
+                            <div class="agr-party-row">A duly licensed money-lending company operating under the Money-Lenders Act (Cap 398 of the Laws of Zambia)</div>
+                            <div class="agr-party-row">Registered office: Plot No. 2882/B/5/10, Mission Drive, Lusaka, Zambia</div>
+                            <div class="agr-party-row">Reg. No: GFS/ZM/2024 &nbsp;|&nbsp; Licensed Money Lender</div>
+                            <div class="agr-party-row agr-italic">hereinafter referred to as the <strong>"Lender"</strong></div>
+                          </div>
+                          <div class="agr-party-box">
+                            <div class="agr-party-lbl">BORROWER</div>
+                            <div class="agr-party-name" x-text="sel.borrower"></div>
+                            <div class="agr-party-row">NRC / Passport No: <span x-text="sel.borrowerNrc"></span></div>
+                            <div class="agr-party-row">Phone: <span x-text="sel.borrowerPhone"></span></div>
+                            <div class="agr-party-row">Address: <span x-text="sel.borrowerAddress"></span></div>
+                            <template x-if="sel.borrowerEmployer && sel.borrowerEmployer !== '—'">
+                              <div class="agr-party-row">Employer: <span x-text="sel.borrowerEmployer"></span></div>
                             </template>
-                          </tbody>
-                          <tfoot>
-                            <tr style="background:#e8f5e9;font-weight:700">
-                              <td colspan="4" style="padding:8px 10px;border:1px solid #dee2e6;text-align:right">TOTAL REPAYABLE</td>
-                              <td style="padding:8px 10px;border:1px solid #dee2e6;text-align:right;font-family:monospace;color:#16a085" x-text="sel.totalRepay"></td>
-                              <td style="padding:8px 10px;border:1px solid #dee2e6"></td>
-                            </tr>
-                          </tfoot>
-                        </table>
+                            <div class="agr-party-row agr-italic">hereinafter referred to as the <strong>"Borrower"</strong></div>
+                          </div>
+                        </div>
                       </div>
 
-                      <!-- Terms and Conditions -->
-                      <div style="margin-bottom:24px">
-                        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0B8FAC;padding-bottom:6px;margin-bottom:12px;color:#0B8FAC">TERMS AND CONDITIONS</div>
-                        <ol style="font-size:12px;color:#333;padding-left:18px;margin:0">
-                          <li style="margin-bottom:6px">The Borrower agrees to repay the loan according to the repayment schedule above. All instalments are due on the specified dates.</li>
-                          <li style="margin-bottom:6px">Interest is charged as a flat rate applied to the original principal for the full contracted term. The interest rate tier is determined by the loan duration (1 month: 10%, 2 months: 18%, 3 months: 28%, 4 months: 38%).</li>
-                          <li style="margin-bottom:6px">A penalty of 5% of the monthly instalment shall be applied for each month an instalment remains unpaid beyond the due date.</li>
-                          <li style="margin-bottom:6px">Early settlement is permitted. The interest charged on early settlement shall be based on the rate applicable to the number of months the loan was actually held, not the original contracted term.</li>
-                          <li style="margin-bottom:6px">The collateral listed in this agreement is pledged as security for the loan. The Lender reserves the right to realise the collateral in the event of default.</li>
-                          <li style="margin-bottom:6px">The Borrower must notify the Lender of any change in employment, address, or contact details within 7 days of such change.</li>
-                          <li style="margin-bottom:6px">The Lender reserves the right to declare this loan in default and demand immediate full repayment if the Borrower fails to make two or more consecutive instalments.</li>
-                          <li style="margin-bottom:6px">This agreement shall be governed by the laws of the Republic of Zambia.</li>
+                      <!-- Section 1: Purpose -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">1. Purpose of the Agreement</div>
+                        <p class="agr-para">This Agreement sets out the terms and conditions under which the Lender provides a financial loan to the Borrower, in accordance with the Money-Lenders Act (Cap 398), and in line with the Gracimor Loans Company Policy Manual.</p>
+                        <p class="agr-para">The Borrower agrees to repay the loan strictly under the terms stated herein.</p>
+                      </div>
+
+                      <!-- Section 2: Loan Details -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">2. Loan Details</div>
+                        <div class="agr-terms-wrap">
+                          <table class="agr-terms-tbl">
+                            <thead>
+                              <tr class="agr-tbl-head"><th class="agr-th">Loan Item</th><th class="agr-th">Details</th></tr>
+                            </thead>
+                            <tbody>
+                              <tr class="agr-row-shaded"><td class="agr-td-lbl">Loan Reference Number</td><td class="agr-td-val agr-mono agr-blue" x-text="sel.num"></td></tr>
+                              <tr><td class="agr-td-lbl">Principal Amount (ZMW)</td><td class="agr-td-val agr-bold agr-blue" x-text="sel.principal"></td></tr>
+                              <tr class="agr-row-shaded"><td class="agr-td-lbl">Loan Product / Type</td><td class="agr-td-val" x-text="sel.product"></td></tr>
+                              <tr><td class="agr-td-lbl">Interest Rate</td><td class="agr-td-val"><span x-text="sel.rawRate + '% simple interest per annum (Money-Lenders Act, s.15)'"></span></td></tr>
+                              <tr class="agr-row-shaded"><td class="agr-td-lbl">Total Amount Payable (ZMW)</td><td class="agr-td-val agr-bold agr-green" x-text="sel.totalRepay"></td></tr>
+                              <tr><td class="agr-td-lbl">Loan Period</td><td class="agr-td-val" x-text="sel.term + ' — commencing ' + (sel.disburseDate || sel.agreementDate)"></td></tr>
+                              <tr class="agr-row-shaded"><td class="agr-td-lbl">Monthly Instalment (ZMW)</td><td class="agr-td-val agr-bold" x-text="sel.monthly"></td></tr>
+                              <tr><td class="agr-td-lbl">Final Payment Due Date</td><td class="agr-td-val" x-text="sel.maturity || '—'"></td></tr>
+                              <tr class="agr-row-shaded"><td class="agr-td-lbl">Processing Fee</td><td class="agr-td-val" x-text="sel.fee"></td></tr>
+                              <tr><td class="agr-td-lbl">Collateral / Security</td><td class="agr-td-val" x-text="sel.collateral + ' (Est. ' + sel.collateralVal + ')'"></td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <!-- Section 3: Interest and Charges -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">3. Interest and Charges</div>
+                        <p class="agr-para"><strong>3(a)</strong> Interest shall be simple interest only and shall not exceed forty-eight percent (48%) per annum in accordance with Section 15 of the Money-Lenders Act.</p>
+                        <p class="agr-para"><strong>3(b)</strong> No compound interest shall be charged, and no hidden or negotiation fees shall apply other than lawful processing fees expressly disclosed to the Borrower.</p>
+                        <p class="agr-para"><strong>3(c) Interest Allocation and Instalment Breakdown</strong><br>
+                        The total interest payable shall be equally apportioned over the loan period and paid in monthly instalments.</p>
+                        <div class="agr-interest-grid">
+                          <div class="agr-interest-item"><div class="agr-interest-lbl">Total Interest Payable</div><div class="agr-interest-val agr-red" x-text="sel.totalInterest"></div></div>
+                          <div class="agr-interest-item"><div class="agr-interest-lbl">Monthly Interest Instalment</div><div class="agr-interest-val" x-text="sel.monthly + ' / month'"></div></div>
+                        </div>
+                        <p class="agr-para agr-note">Gracimor Loans Interest Structure (Money-Lenders Act, Cap 398): Simple interest rates for short- to medium-term facilities apply as per the approved licence.</p>
+                      </div>
+
+                      <!-- Section 3(d): Repayment Schedule -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">3(d). Repayment Schedule</div>
+                        <p class="agr-para">The Borrower shall repay the loan strictly in accordance with the following instalment structure:</p>
+                        <div class="agr-sched-wrap">
+                          <table class="agr-sched-tbl">
+                            <thead>
+                              <tr>
+                                <th>#</th>
+                                <th>Due Date</th>
+                                <th class="agr-tr">Principal (ZMW)</th>
+                                <th class="agr-tr">Interest (ZMW)</th>
+                                <th class="agr-tr">Total Due (ZMW)</th>
+                                <th class="agr-tr">Balance (ZMW)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <template x-for="(row, idx) in sel.schedule" :key="row.n">
+                                <tr :class="idx%2===0?'agr-row-shaded':''">
+                                  <td class="agr-mono" x-text="row.n"></td>
+                                  <td x-text="row.due"></td>
+                                  <td class="agr-tr agr-mono" x-text="row.prin"></td>
+                                  <td class="agr-tr agr-mono" x-text="row.int"></td>
+                                  <td class="agr-tr agr-mono agr-bold" x-text="row.total"></td>
+                                  <td class="agr-tr agr-mono" x-text="row.bal"></td>
+                                </tr>
+                              </template>
+                            </tbody>
+                            <tfoot>
+                              <tr class="agr-tfoot">
+                                <td colspan="4" class="agr-tr agr-bold">TOTAL REPAYABLE</td>
+                                <td class="agr-tr agr-mono agr-green agr-bold" x-text="sel.totalRepay"></td>
+                                <td></td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      </div>
+
+                      <!-- Section 3(e): Strict Payment Conditions -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">3(e). Strict Payment Conditions</div>
+                        <ol class="agr-terms-list">
+                          <li>Monthly interest payments are mandatory and shall be paid in full on or before their respective due dates.</li>
+                          <li>The final instalment shall constitute full and final settlement of the loan and must include both the final interest instalment and the full outstanding principal.</li>
+                          <li>No instalment shall be deferred, skipped, combined, or reallocated without the prior written consent of the Lender.</li>
+                          <li>Failure to pay any instalment in full and on time shall constitute a default under this Agreement.</li>
                         </ol>
                       </div>
 
-                      <!-- Signatures -->
-                      <div style="margin-bottom:24px">
-                        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0B8FAC;padding-bottom:6px;margin-bottom:20px;color:#0B8FAC">SIGNATURES</div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px">
-                          <div>
-                            <div style="font-size:12px;font-weight:600;margin-bottom:4px">BORROWER</div>
-                            <div style="border-bottom:1px solid #555;height:48px;margin-bottom:6px"></div>
-                            <div style="font-size:12px;color:#333" x-text="sel.borrower"></div>
-                            <div style="font-size:11px;color:#666">NRC: <span x-text="sel.borrowerNrc"></span></div>
-                            <div style="display:flex;gap:20px;margin-top:12px">
-                              <div style="flex:1">
-                                <div style="font-size:11px;color:#666;margin-bottom:2px">Date</div>
-                                <div style="border-bottom:1px solid #aaa;height:24px"></div>
+                      <!-- Section 4: Repayment Terms -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">4. Repayment Terms</div>
+                        <ol class="agr-terms-list agr-alpha-list">
+                          <li>The Borrower agrees to repay the loan amount, including interest, on or before the agreed final due date.</li>
+                          <li>Instalments may be made monthly as agreed; full settlement shall occur within the loan period.</li>
+                          <li>Payments shall be made by bank transfer, mobile money, or any other approved method to the Lender's official account.</li>
+                          <li>Each payment shall be receipted and recorded in the Borrower's loan file.</li>
+                        </ol>
+                      </div>
+
+                      <!-- Section 5: Collateral -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">5. Collateral and Security</div>
+                        <ol class="agr-terms-list agr-alpha-list">
+                          <li>The Borrower hereby pledges the collateral described in Clause 2 as security for the loan.</li>
+                          <li>The Borrower warrants that they are the lawful owners of the said property and that it is free from encumbrances, liens, or disputes.</li>
+                          <li>In the case of movable collateral, the Borrower hereby authorises Gracimor Loans to take possession and keep such collateral safely stored under the Company's protection for the duration of the loan period. The collateral shall remain the property of the Borrower but shall be held in secure custody by Gracimor Loans purely as security until the loan is fully repaid. Gracimor Loans shall ensure that all stored collateral is kept in a secure, well-maintained environment and shall not use, lease, or dispose of the property unless lawful recovery proceedings become necessary in accordance with the Money-Lenders Act and the Company's Collateral Seizure Policy.</li>
+                          <li>The Borrower shall not sell, transfer, damage, or encumber the collateral until the loan is fully repaid.</li>
+                        </ol>
+                      </div>
+
+                      <!-- Section 6: Borrower Warranties -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">6. Borrower Warranties</div>
+                        <p class="agr-para">By signing this Agreement, the Borrower confirms that:</p>
+                        <ol class="agr-terms-list">
+                          <li>All information provided is true, complete, and accurate.</li>
+                          <li>The loan will be used for legitimate personal or business purposes.</li>
+                          <li>They have full legal capacity to enter this Agreement.</li>
+                          <li>They understand the interest rate, repayment terms, and penalties for default.</li>
+                          <li>They have read and understood the Gracimor Loans policies incorporated by reference in this Agreement.</li>
+                        </ol>
+                      </div>
+
+                      <!-- Section 7: Default Policy -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">7. Default Policy</div>
+                        <p class="agr-sub-heading"><strong>7.1 Definition of Default</strong></p>
+                        <p class="agr-para">The Borrower is deemed in default if:</p>
+                        <ul class="agr-bullet-list">
+                          <li>Any instalment or repayment remains unpaid for more than seven (7) days after its due date; or</li>
+                          <li>The Borrower breaches any term of this Agreement or provides false information; or</li>
+                          <li>The Borrower becomes insolvent, absconds, or misuses the loan funds.</li>
+                        </ul>
+                        <p class="agr-sub-heading"><strong>7.2 Consequences of Default</strong></p>
+                        <p class="agr-para">Upon default:</p>
+                        <ol class="agr-terms-list agr-alpha-list">
+                          <li>The Borrower shall be charged simple interest on the overdue balance at the same contractual rate.</li>
+                          <li>The Lender may issue a Written Notice of Default followed by a Final Demand Notice granting fourteen (14) additional days to make payment.</li>
+                          <li>Failure to comply shall empower the Lender to commence lawful recovery proceedings, including collateral seizure in line with the Company's Collateral Seizure and Realization Policy.</li>
+                          <li>The Borrower shall bear all reasonable recovery, valuation, storage, and legal costs incurred.</li>
+                        </ol>
+                        <p class="agr-sub-heading"><strong>7.3 Collateral Seizure</strong></p>
+                        <p class="agr-para">In the event of continued non-payment after proper notices, the Lender may lawfully seize and sell the pledged collateral. The process shall follow the timelines and safeguards established in the Collateral Seizure Policy, including:</p>
+                        <ul class="agr-bullet-list">
+                          <li>Thirty (30) days default period.</li>
+                          <li>Written notice of intention to realize collateral with a fourteen (14) day grace period.</li>
+                          <li>Peaceful seizure witnessed by a third party.</li>
+                          <li>Professional valuation and fair sale.</li>
+                          <li>Refund of surplus proceeds (if any) within seven (7) days.</li>
+                        </ul>
+                        <p class="agr-sub-heading"><strong>7.4 Limitation Period</strong></p>
+                        <p class="agr-para">Legal recovery proceedings must commence within twelve (12) months of the cause of action, in accordance with Section 18 of the Money-Lenders Act.</p>
+                      </div>
+
+                      <!-- Sections 8–14 -->
+                      <div class="agr-section">
+                        <div class="agr-section-title">8. Right of Redemption</div>
+                        <p class="agr-para">Before the sale of any seized collateral, the Borrower shall have the right to redeem the asset by paying the full outstanding amount, including reasonable recovery costs, before the date of sale. Upon payment, the collateral shall be immediately released.</p>
+                      </div>
+
+                      <div class="agr-section">
+                        <div class="agr-section-title">9. Early Settlement and Prepayment</div>
+                        <p class="agr-para">The Borrower may at any time settle the loan earlier than the final due date. Interest shall only be charged for the period the loan remained outstanding. No early settlement penalties shall apply.</p>
+                      </div>
+
+                      <div class="agr-section">
+                        <div class="agr-section-title">10. Disclosure and Record-Keeping</div>
+                        <ol class="agr-terms-list agr-alpha-list">
+                          <li>The Lender shall maintain a detailed record of this loan, including copies of all correspondence, notices, payments, and collateral documentation, for a minimum of seven (7) years.</li>
+                          <li>The Borrower may request a written statement of account at any time, in accordance with Section 11 of the Money-Lenders Act.</li>
+                        </ol>
+                      </div>
+
+                      <div class="agr-section">
+                        <div class="agr-section-title">11. Confidentiality and Data Protection</div>
+                        <p class="agr-para">All personal and financial information provided by the Borrower shall remain confidential and shall be used solely for loan administration and recovery purposes. Disclosure shall occur only under lawful authority, court order, or regulatory requirement.</p>
+                      </div>
+
+                      <div class="agr-section">
+                        <div class="agr-section-title">12. Governing Law and Jurisdiction</div>
+                        <p class="agr-para">This Agreement is governed by the Money-Lenders Act (Cap 398) and other applicable laws of the Republic of Zambia. Any dispute arising hereunder shall be resolved by a competent court of jurisdiction within the Republic of Zambia.</p>
+                      </div>
+
+                      <div class="agr-section">
+                        <div class="agr-section-title">13. Notices</div>
+                        <p class="agr-para">All notices, demands, or communications under this Agreement shall be made in writing and delivered personally, by email, or by registered post to the last known address of the Borrower or Lender. Proof of delivery shall constitute valid service.</p>
+                      </div>
+
+                      <div class="agr-section">
+                        <div class="agr-section-title">14. Miscellaneous Terms</div>
+                        <ol class="agr-terms-list agr-alpha-list">
+                          <li>This Agreement constitutes the entire understanding between the parties.</li>
+                          <li>Any amendment shall be in writing and signed by both parties.</li>
+                          <li>If any provision is declared invalid, the remaining terms shall remain enforceable.</li>
+                          <li>The Borrower acknowledges having read and understood the entire document before signing.</li>
+                        </ol>
+                      </div>
+
+                      <!-- Section 15: Execution / Signatures -->
+                      <div class="agr-section agr-sigs">
+                        <div class="agr-section-title">15. Execution of Agreement</div>
+                        <p class="agr-para">Signed at: <span class="agr-blank">Lusaka, Zambia</span> &nbsp;&nbsp; Date: <span class="agr-blank" x-text="sel.agreementDate"></span></p>
+
+                        <!-- Lender + Borrower (with e-signature pads) -->
+                        <div class="agr-sig-grid">
+
+                          <!-- Lender / Officer -->
+                          <div class="agr-sig-block">
+                            <div class="agr-sig-role">FOR THE LENDER — GRACIMOR LOANS</div>
+                            <div class="agr-sigpad-wrap no-print" x-show="!officerSigned" style="height:130px">
+                              <div class="agr-sigpad-hint">✍ Sign here using finger or mouse</div>
+                              <canvas id="officer-sig-canvas" class="agr-sigpad-canvas" style="height:85px"></canvas>
+                              <div class="agr-sigpad-btns">
+                                <button type="button" class="agr-sig-clear-btn" @click="clearSig('officer')">✕ Clear</button>
+                                <button type="button" class="agr-sig-confirm-btn" @click="confirmSig('officer')">✓ Confirm</button>
                               </div>
-                              <div style="flex:1">
-                                <div style="font-size:11px;color:#666;margin-bottom:2px">Witness</div>
-                                <div style="border-bottom:1px solid #aaa;height:24px"></div>
+                            </div>
+                            <div class="agr-sigpad-done" x-show="officerSigned" style="height:130px">
+                              <img :src="officerSigData" alt="Officer signature" style="height:85px;width:100%;object-fit:contain" />
+                              <div class="agr-sig-done-bar no-print">
+                                <div class="agr-sig-done-lbl">✓ Signed</div>
+                                <button type="button" class="agr-sig-resign-btn" @click="resignSig('officer')">Re-sign</button>
+                              </div>
+                            </div>
+                            <div class="agr-sig-line print-only" x-show="!officerSigned"></div>
+                            <div class="agr-sig-name">Mr. Fashion Sakala Junior</div>
+                            <div class="agr-sig-sub">Chief Executive Officer — Gracimor Loans</div>
+                            <div class="agr-sig-sub agr-italic">Authorised Signatory</div>
+                            <div class="agr-sig-fields">
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Date Signed</div>
+                                <div class="agr-sig-field-line" x-text="officerSignedAt || ''"></div>
                               </div>
                             </div>
                           </div>
-                          <div>
-                            <div style="font-size:12px;font-weight:600;margin-bottom:4px">FOR GRACIMOR FINANCIAL SERVICES</div>
-                            <div style="border-bottom:1px solid #555;height:48px;margin-bottom:6px"></div>
-                            <div style="font-size:12px;color:#333" x-text="sel.officer"></div>
-                            <div style="font-size:11px;color:#666">Authorised Lending Officer</div>
-                            <div style="display:flex;gap:20px;margin-top:12px">
-                              <div style="flex:1">
-                                <div style="font-size:11px;color:#666;margin-bottom:2px">Date</div>
-                                <div style="border-bottom:1px solid #aaa;height:24px"></div>
+
+                          <!-- Borrower -->
+                          <div class="agr-sig-block">
+                            <div class="agr-sig-role">FOR THE BORROWER</div>
+                            <div class="agr-sigpad-wrap no-print" x-show="!borrowerSigned" style="height:130px">
+                              <div class="agr-sigpad-hint">✍ Sign here using finger or mouse</div>
+                              <canvas id="borrower-sig-canvas" class="agr-sigpad-canvas" style="height:85px"></canvas>
+                              <div class="agr-sigpad-btns">
+                                <button type="button" class="agr-sig-clear-btn" @click="clearSig('borrower')">✕ Clear</button>
+                                <button type="button" class="agr-sig-confirm-btn" @click="confirmSig('borrower')">✓ Confirm</button>
                               </div>
-                              <div style="flex:1">
-                                <div style="font-size:11px;color:#666;margin-bottom:2px">Official Stamp</div>
-                                <div style="border-bottom:1px solid #aaa;height:24px"></div>
+                            </div>
+                            <div class="agr-sigpad-done" x-show="borrowerSigned" style="height:130px">
+                              <img :src="borrowerSigData" alt="Borrower signature" style="height:85px;width:100%;object-fit:contain" />
+                              <div class="agr-sig-done-bar no-print">
+                                <div class="agr-sig-done-lbl">✓ Signed</div>
+                                <button type="button" class="agr-sig-resign-btn" @click="resignSig('borrower')">Re-sign</button>
+                              </div>
+                            </div>
+                            <div class="agr-sig-line print-only" x-show="!borrowerSigned"></div>
+                            <div class="agr-sig-name" x-text="sel.borrower"></div>
+                            <div class="agr-sig-sub">NRC: <span x-text="sel.borrowerNrc"></span></div>
+                            <div class="agr-sig-fields">
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Date Signed</div>
+                                <div class="agr-sig-field-line" x-text="borrowerSignedAt || ''"></div>
+                              </div>
+                              <div class="agr-sig-field"><div class="agr-sig-field-lbl">Contact Number</div><div class="agr-sig-field-line" x-text="sel.borrowerPhone !== '—' ? sel.borrowerPhone : ''"></div></div>
+                            </div>
+                          </div>
+
+                        </div>
+
+                        <!-- Guarantor -->
+                        <div class="agr-sig-section-sub">
+                          <div class="agr-sig-sub-title">FOR THE GUARANTOR (if applicable)</div>
+                          <div class="agr-sig-grid">
+                            <div>
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Name</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">NRC / Passport No.</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Address</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                            </div>
+                            <div>
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Contact Number</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Email</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Date</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+
+                        <!-- Witness -->
+                        <div class="agr-sig-section-sub">
+                          <div class="agr-sig-sub-title">WITNESS (Independent Adult)</div>
+                          <div class="agr-sig-grid">
+                            <div>
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Name</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">NRC No.</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Address</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                            </div>
+                            <div>
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Contact Number</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Email</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Date</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Signature status bar (screen only) -->
+                        <div class="no-print" style="margin-top:16px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                          <div style="font-size:12px;color:#15803d;font-family:sans-serif">
+                            <span x-show="!borrowerSigned && !officerSigned" style="color:#92400e">⚠ Both parties need to sign before saving as PDF.</span>
+                            <span x-show="borrowerSigned && !officerSigned" style="color:#92400e">⚠ Borrower signed — awaiting officer signature.</span>
+                            <span x-show="!borrowerSigned && officerSigned" style="color:#92400e">⚠ Officer signed — awaiting borrower signature.</span>
+                            <span x-show="borrowerSigned && officerSigned">✓ Both parties have signed. Agreement is ready.</span>
+                          </div>
+                          <button x-show="borrowerSigned && officerSigned" type="button"
+                            style="font-size:12px;padding:6px 14px;background:#15803d;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:sans-serif;font-weight:600"
+                            @click="printAgreement()">🖨️ Save Signed Agreement as PDF</button>
+                        </div>
+
+                      </div><!-- /agr-sigs -->
 
                       <!-- Footer -->
-                      <div style="border-top:1px solid #dee2e6;padding-top:14px;text-align:center;font-size:11px;color:#888">
-                        <div>This document was generated by the GRACIMOR Loans Management System.</div>
-                        <div style="margin-top:2px">Agreement Ref: <span style="font-family:monospace" x-text="sel.num"></span> &nbsp;|&nbsp; Generated: <span x-text="new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})"></span></div>
+                      <div class="agr-footer">
+                        <div>This document was generated by the GRACIMOR Loans Management System · Issued under Money-Lenders Act, Cap 398 of the Laws of Zambia.</div>
+                        <div>Agreement Ref: <span class="agr-mono" x-text="sel.num"></span> &nbsp;|&nbsp; Generated: <span x-text="new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})"></span></div>
                       </div>
 
                     </div><!-- /agreement-doc -->
@@ -1886,6 +2293,12 @@ body { overflow-x: hidden; }
       rejectReason: '', rejectNotes: '',
       toast: false, toastMsg: '', toastColor: 'var(--green)',
       settle: {}, settleMethod: 'cash',
+
+      // ── e-Signature state ──────────────────────────────────────────────
+      borrowerSigPad: null, officerSigPad: null,
+      borrowerSigned: false, officerSigned: false,
+      borrowerSigData: null, officerSigData: null,
+      borrowerSignedAt: null, officerSignedAt: null,
       stats: { loans: { total:'-', active:'-', pending:'-', overdue:'-', closed:'-' } },
       rows: [], page: 1, perPage: 8,
       borrowerResults: [],
@@ -1963,6 +2376,8 @@ body { overflow-x: hidden; }
       async open(l) {
         this.ptab = 'schedule';
         this.view = 'detail';
+        // Reset signatures for the new loan
+        this._resetSigs();
         // Show a placeholder immediately
         this.sel = { ...l, principal: '…', schedule: [], payments: [], penaltyRows: [], timeline: [], docs: [] };
         const token = localStorage.getItem('lms_token');
@@ -2083,14 +2498,30 @@ body { overflow-x: hidden; }
             balInterestPaid:       parseFloat(d.loan_balance?.interest_paid) || 0,
             balPenaltyPaid:        parseFloat(d.loan_balance?.penalty_paid) || 0,
             borrowerNrc:      d.borrower?.nrc_number || '—',
-            borrowerPhone:    d.borrower?.phone_number || '—',
-            borrowerAddress:  d.borrower?.physical_address || d.borrower?.address || '—',
+            borrowerPhone:    d.borrower?.phone_primary || '—',
+            borrowerAddress:  d.borrower?.residential_address || d.borrower?.work_address || '—',
             borrowerEmployer: d.borrower?.employer_name || '—',
             rawPrincipal:     parseFloat(d.principal_amount) || 0,
             rawRate:          parseFloat(d.interest_rate) || 0,
             rawTerm:          parseInt(d.term_months) || 0,
             agreementDate:    d.disbursed_at ? this._fmtDate(d.disbursed_at) : this._fmtDate(d.created_at),
           };
+
+          // Restore persisted e-signatures for this loan
+          if (d.borrower_signature) {
+            this.borrowerSigData   = d.borrower_signature;
+            this.borrowerSigned    = true;
+            this.borrowerSignedAt  = d.borrower_signed_at
+              ? new Date(d.borrower_signed_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+              : null;
+          }
+          if (d.officer_signature) {
+            this.officerSigData   = d.officer_signature;
+            this.officerSigned    = true;
+            this.officerSignedAt  = d.officer_signed_at
+              ? new Date(d.officer_signed_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+              : null;
+          }
         } catch (e) { console.error('Loan detail error:', e); }
       },
 
@@ -2339,9 +2770,172 @@ body { overflow-x: hidden; }
         }
       },
 
+      _resetSigs() {
+        this.borrowerSigPad = null; this.officerSigPad = null;
+        this.borrowerSigned = false; this.officerSigned = false;
+        this.borrowerSigData = null; this.officerSigData = null;
+        this.borrowerSignedAt = null; this.officerSignedAt = null;
+      },
+
+      initSigPads() {
+        this.$nextTick(() => {
+          const initPad = (canvasId, who) => {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            if (who === 'borrower' && this.borrowerSigPad) return;
+            if (who === 'officer' && this.officerSigPad) return;
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+            const pad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)', penColor: '#1a1a2e' });
+            if (who === 'borrower') this.borrowerSigPad = pad;
+            else this.officerSigPad = pad;
+          };
+          initPad('borrower-sig-canvas', 'borrower');
+          initPad('officer-sig-canvas', 'officer');
+        });
+      },
+
+      clearSig(who) {
+        const pad = who === 'borrower' ? this.borrowerSigPad : this.officerSigPad;
+        pad?.clear();
+      },
+
+      async confirmSig(who) {
+        const pad = who === 'borrower' ? this.borrowerSigPad : this.officerSigPad;
+        if (!pad || pad.isEmpty()) { this.showToast('Please draw your signature first.', 'var(--amber)'); return; }
+        const dataUrl = pad.toDataURL('image/png');
+        const dateStamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        if (who === 'borrower') { this.borrowerSigData = dataUrl; this.borrowerSigned = true; this.borrowerSignedAt = dateStamp; }
+        else                    { this.officerSigData  = dataUrl; this.officerSigned  = true; this.officerSignedAt  = dateStamp; }
+
+        // Persist to the database
+        const token = localStorage.getItem('lms_token');
+        try {
+          const res = await fetch(`/api/loans/${this.sel.id}/signatures`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ role: who, signature: dataUrl }),
+          });
+          if (res.ok) {
+            this.showToast((who === 'borrower' ? 'Borrower' : 'Officer') + ' signature saved.', 'var(--teal)');
+          } else {
+            this.showToast('Signature confirmed but could not be saved to server.', 'var(--amber)');
+          }
+        } catch {
+          this.showToast('Signature confirmed but server unreachable.', 'var(--amber)');
+        }
+      },
+
+      async resignSig(who) {
+        // Clear from DB first
+        const token = localStorage.getItem('lms_token');
+        try {
+          await fetch(`/api/loans/${this.sel.id}/signatures/${who}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+          });
+        } catch { /* proceed anyway */ }
+
+        if (who === 'borrower') { this.borrowerSigned = false; this.borrowerSigData = null; this.borrowerSigPad = null; this.borrowerSignedAt = null; }
+        else                    { this.officerSigned  = false; this.officerSigData  = null; this.officerSigPad  = null; this.officerSignedAt  = null; }
+        this.$nextTick(() => this.initSigPads());
+      },
+
       printAgreement() {
-        this.showToast('Opening print dialog — choose "Save as PDF"', 'var(--teal)');
-        setTimeout(() => { window.print(); }, 400);
+        const docEl = document.getElementById('agreement-doc');
+        if (!docEl) { this.showToast('Agreement not available.', 'var(--red)'); return; }
+
+        const logoUrl = window.location.origin + '/img/loan%20agreement%20form%20logo.png';
+        const css = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4;margin:18mm 20mm}
+body{font-family:Georgia,'Times New Roman',serif;background:#fff;color:#111;font-size:13px;line-height:1.6}
+#agreement-doc{font-family:Georgia,serif}
+.agr-header{text-align:center;border-bottom:2px double #0B8FAC;padding-bottom:14px;margin-bottom:18px}
+.agr-header-inner{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:6px}
+.agr-logo-img{height:60px;width:auto;object-fit:contain}
+.agr-header-text{text-align:center}
+.agr-logo{font-size:24px;font-weight:700;letter-spacing:.04em;color:#0B8FAC}
+.agr-sub{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#555;margin-top:3px}
+.agr-legal-ref{font-size:12px;color:#666;margin-top:3px;font-style:italic}
+.agr-ref-block{margin-top:8px;padding-top:8px;border-top:1px solid #e5e7eb;font-size:12px;color:#555}
+.agr-mono{font-family:monospace;font-weight:700}
+.agr-preamble{font-size:13px;color:#333;margin-bottom:10px}
+.agr-para{font-size:13px;color:#333;line-height:1.6;margin-bottom:8px}
+.agr-sub-heading{font-size:13px;font-weight:700;margin-top:10px;margin-bottom:6px}
+.agr-note{font-size:12px;color:#666;font-style:italic;background:#f8f9fa;padding:8px 10px;border-radius:4px;border-left:3px solid #0B8FAC;margin-top:6px}
+.agr-italic{font-style:italic}
+.agr-blank{border-bottom:1px solid #333;display:inline-block;min-width:120px;padding-bottom:1px}
+.agr-parties{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.agr-party-box{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:12px 14px;page-break-inside:avoid;break-inside:avoid}
+.agr-party-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#0B8FAC;margin-bottom:6px}
+.agr-party-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.agr-party-row{font-size:12.5px;color:#444;line-height:1.55;margin-top:2px}
+.agr-section{margin-bottom:18px}
+.agr-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1.5px solid #0B8FAC;padding-bottom:4px;margin-bottom:10px;color:#0B8FAC}
+.agr-terms-wrap,.agr-sched-wrap{overflow:visible}
+.agr-terms-tbl,.agr-sched-tbl{width:100%;border-collapse:collapse}
+.agr-th{background:#0B8FAC;color:#fff;padding:8px 10px;text-align:left;font-size:12px;font-weight:700}
+.agr-terms-tbl td{padding:7px 10px;border:1px solid #dee2e6;font-size:12.5px}
+.agr-td-lbl{font-weight:600;width:38%;background:#f8f9fa}
+.agr-td-val{width:62%}
+.agr-row-shaded td{background:#f0f9ff}
+.agr-blue{font-weight:700;color:#0B8FAC}
+.agr-red{color:#c0392b}
+.agr-green{color:#16a085}
+.agr-bold{font-weight:700}
+.agr-tr{text-align:right}
+.agr-interest-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.agr-interest-item{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:10px 14px}
+.agr-interest-lbl{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.agr-interest-val{font-size:15px;font-weight:700;color:#0B2540}
+.agr-sched-tbl th{padding:7px 9px;background:#0B8FAC;color:#fff;border:1px solid #0B8FAC;font-size:12px;text-align:left}
+.agr-sched-tbl td{padding:6px 9px;border:1px solid #dee2e6;font-size:12px}
+.agr-tfoot td{background:#e8f5e9;font-weight:700;font-size:12px;padding:7px 9px}
+.agr-terms-list{font-size:12.5px;color:#333;padding-left:20px;margin:6px 0}
+.agr-terms-list li{margin-bottom:7px;line-height:1.6}
+.agr-bullet-list{font-size:12.5px;color:#333;padding-left:20px;margin:6px 0}
+.agr-bullet-list li{margin-bottom:5px;line-height:1.6}
+.agr-alpha-list{list-style-type:lower-alpha}
+.agr-sigs{page-break-inside:avoid;break-inside:avoid}
+.agr-sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.agr-sig-block{padding:10px 0}
+.agr-sig-role{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#0B8FAC;margin-bottom:8px}
+.agr-sig-line{border-bottom:1.5px solid #333;height:44px;margin-bottom:6px}
+.agr-sig-name{font-size:13px;font-weight:700;color:#111}
+.agr-sig-sub{font-size:12px;color:#666;margin-top:3px}
+.agr-sig-fields{display:flex;gap:14px;margin-top:10px}
+.agr-sig-field{flex:1}
+.agr-sig-field-lbl{font-size:12px;color:#666;margin-bottom:3px}
+.agr-sig-field-line{border-bottom:1px solid #aaa;height:22px}
+.agr-sigpad-done img{display:block;width:100%;height:85px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;background:#fff;margin-bottom:5px}
+.agr-sig-section-sub{margin-top:20px;padding-top:16px;border-top:1px dashed #dee2e6}
+.agr-sig-sub-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0B8FAC;margin-bottom:10px}
+.agr-acknowledgement{background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:14px 16px;margin-top:20px}
+.agr-footer{border-top:1px solid #dee2e6;padding-top:10px;text-align:center;font-size:12px;color:#888;margin-top:18px}
+.agr-footer div+div{margin-top:3px}
+.agr-input{border-bottom:1.5px solid #555;min-height:22px;padding:3px 4px;font-size:13px;color:#111;font-family:Georgia,serif;line-height:1.4}
+.no-print{display:none!important}
+.agr-sigpad-wrap{display:none!important}
+.agr-sig-done-bar{display:none!important}
+.print-only{display:block!important}
+`;
+
+        const win = window.open('', '_blank', 'width=900,height=1100,scrollbars=yes');
+        if (!win) { this.showToast('Pop-up blocked — please allow pop-ups for this site then try again.', 'var(--amber)'); return; }
+
+        win.document.write(`<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<title>Loan Agreement \u2014 ${this.sel?.num || ''}</title>
+<style>${css}</style>
+</head><body>
+<div id="agreement-doc">${docEl.innerHTML.replace('/img/loan agreement form logo.png', logoUrl)}</div>
+<script>window.addEventListener('load',function(){window.focus();window.print();});<\/script>
+</body></html>`);
+        win.document.close();
+        this.showToast('Print dialog opening\u2026 choose \u201CSave as PDF\u201D', 'var(--teal)');
       },
 
       showToast(msg, color) {
@@ -2370,6 +2964,7 @@ body { overflow-x: hidden; }
         this.disburseDate = iso;
         this.f.firstDate = iso;
         await Promise.all([this.loadStats(), this.loadLoans(), this.loadLoanProducts()]);
+        this.$watch('ptab', val => { if (val === 'agreement') this.initSigPads(); });
         // Auto-open settlement modal if redirected from payments page (?settle=loanId)
         const params = new URLSearchParams(window.location.search);
         const settleId = params.get('settle');

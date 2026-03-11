@@ -216,7 +216,7 @@ class LoanService
                 'disbursement_method'    => $data['disbursement_method'],
                 'disbursement_reference' => $data['disbursement_reference'] ?? null,
                 'disbursed_by'           => $by->id,
-                'disburse_notes'         => $data['notes'] ?? null,
+                'disburse_notes'         => $data['disburse_notes'] ?? null,
             ]);
 
             // 2. Generate amortisation schedule
