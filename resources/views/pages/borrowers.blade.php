@@ -1072,6 +1072,7 @@ body { overflow-x: hidden; }
                   <button class="ptab" :class="{active:ptab==='payments'}" @click="ptab='payments'" x-text="`Payments (${(selDetail?.loans||[]).reduce((s,l)=>s+(l.payments?.length||0),0)})`">Payments</button>
                   <button class="ptab" :class="{active:ptab==='docs'}" @click="ptab='docs'" x-text="`Documents (${selDetail?.documents?.length ?? 0})`">Documents</button>
                   <button class="ptab" :class="{active:ptab==='guar'}" @click="ptab='guar'" x-text="`Guarantors (${selDetail?.guarantors?.length ?? 0})`">Guarantors</button>
+                  <button class="ptab" :class="{active:ptab==='nok'}" @click="ptab='nok'">Next of Kin</button>
                 </div>
 
                 <div style="padding:18px">
@@ -1179,6 +1180,37 @@ body { overflow-x: hidden; }
                           </div>
                         </template>
                         <div x-show="!selDetail.documents || selDetail.documents.length===0" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">No documents on file.</div>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Next of Kin tab -->
+                  <div x-show="ptab==='nok'">
+                    <div x-show="selLoading" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">Loading…</div>
+                    <template x-if="!selLoading && selDetail">
+                      <div>
+                        <template x-if="selDetail.nok_name">
+                          <div class="loan-card">
+                            <div class="flex aic g12">
+                              <div class="b-av" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);width:44px;height:44px;font-size:15px"
+                                   x-text="(selDetail.nok_name||'?').split(' ').map(p=>p[0]).join('').toUpperCase().slice(0,2)"></div>
+                              <div>
+                                <div class="f6 tw" x-text="selDetail.nok_name"></div>
+                                <div class="b-id mt4" x-text="'NRC: ' + (selDetail.nok_nrc||'—')"></div>
+                              </div>
+                              <span class="badge b-active" style="margin-left:auto">Next of Kin</span>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(30,52,80,.5)">
+                              <div><div class="xs ts">Relationship</div><div class="sm tw mt4" x-text="selDetail.nok_relationship||'—'"></div></div>
+                              <div><div class="xs ts">Phone</div><div class="sm mono mt4" x-text="selDetail.nok_phone||'—'"></div></div>
+                              <div><div class="xs ts">Email</div><div class="sm mono mt4" x-text="selDetail.nok_email||'—'"></div></div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(30,52,80,.3)">
+                              <div><div class="xs ts">Address</div><div class="sm mt4" x-text="selDetail.nok_address||'—'"></div></div>
+                            </div>
+                          </div>
+                        </template>
+                        <div x-show="!selDetail.nok_name" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">No next of kin on file.</div>
                       </div>
                     </template>
                   </div>
