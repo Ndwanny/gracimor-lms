@@ -1368,7 +1368,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
                               <tr class="agr-row-shaded"><td class="agr-td-lbl">Monthly Instalment (ZMW)</td><td class="agr-td-val agr-bold" x-text="sel.monthly"></td></tr>
                               <tr><td class="agr-td-lbl">Final Payment Due Date</td><td class="agr-td-val" x-text="sel.maturity || '—'"></td></tr>
                               <tr class="agr-row-shaded"><td class="agr-td-lbl">Processing Fee</td><td class="agr-td-val" x-text="sel.fee"></td></tr>
-                              <tr><td class="agr-td-lbl">Collateral / Security</td><td class="agr-td-val" x-text="sel.collateral + ' (Est. ' + sel.collateralVal + ')'"></td></tr>
+                              <tr><td class="agr-td-lbl">Collateral / Security</td><td class="agr-td-val" x-text="sel.collateral + (sel.collateralLandType ? ' — ' + sel.collateralLandType : '') + ' (Est. ' + sel.collateralVal + ')'"></td></tr>
                             </tbody>
                           </table>
                         </div>
@@ -1648,6 +1648,41 @@ html, body { overflow-x: hidden; max-width: 100%; }
                               <div class="agr-sig-field" style="margin-top:10px">
                                 <div class="agr-sig-field-lbl">Date</div>
                                 <div class="agr-input" contenteditable="true" spellcheck="false"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Next of Kin -->
+                        <div class="agr-sig-section-sub">
+                          <div class="agr-sig-sub-title">NEXT OF KIN</div>
+                          <div class="agr-sig-grid">
+                            <div>
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Name</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false" x-text="sel.borrowerNokName"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">NRC / Passport No.</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false" x-text="sel.borrowerNokNrc"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Relationship to Borrower</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false" x-text="sel.borrowerNokRelation"></div>
+                              </div>
+                            </div>
+                            <div>
+                              <div class="agr-sig-field">
+                                <div class="agr-sig-field-lbl">Contact Number</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false" x-text="sel.borrowerNokPhone"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Email</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false" x-text="sel.borrowerNokEmail"></div>
+                              </div>
+                              <div class="agr-sig-field" style="margin-top:10px">
+                                <div class="agr-sig-field-lbl">Address</div>
+                                <div class="agr-input" contenteditable="true" spellcheck="false" x-text="sel.borrowerNokAddress"></div>
                               </div>
                             </div>
                           </div>
@@ -2497,10 +2532,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
             balPrincipalPaid:      parseFloat(d.loan_balance?.principal_paid) || 0,
             balInterestPaid:       parseFloat(d.loan_balance?.interest_paid) || 0,
             balPenaltyPaid:        parseFloat(d.loan_balance?.penalty_paid) || 0,
-            borrowerNrc:      d.borrower?.nrc_number || '—',
-            borrowerPhone:    d.borrower?.phone_primary || '—',
-            borrowerAddress:  d.borrower?.residential_address || d.borrower?.work_address || '—',
-            borrowerEmployer: d.borrower?.employer_name || '—',
+            borrowerNrc:        d.borrower?.nrc_number || '—',
+            borrowerPhone:      d.borrower?.phone_primary || '—',
+            borrowerAddress:    d.borrower?.residential_address || d.borrower?.work_address || '—',
+            borrowerEmployer:   d.borrower?.employer_name || '—',
+            borrowerNokName:    d.borrower?.nok_name || '',
+            borrowerNokNrc:     d.borrower?.nok_nrc || '',
+            borrowerNokPhone:   d.borrower?.nok_phone || '',
+            borrowerNokEmail:   d.borrower?.nok_email || '',
+            borrowerNokAddress: d.borrower?.nok_address || '',
+            borrowerNokRelation:d.borrower?.nok_relationship || '',
+            collateralLandType: d.collateral_asset?.land_type || '',
             rawPrincipal:     parseFloat(d.principal_amount) || 0,
             rawRate:          parseFloat(d.interest_rate) || 0,
             rawTerm:          parseInt(d.term_months) || 0,

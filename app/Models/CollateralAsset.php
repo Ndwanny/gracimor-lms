@@ -32,7 +32,7 @@ class CollateralAsset extends Model
         'land_address',
         'land_size_sqm',
         'land_ownership_type',
-        'land_use',
+        'land_type',
         'gps_latitude',
         'gps_longitude',
         'estimated_value',
@@ -65,7 +65,7 @@ class CollateralAsset extends Model
                     return "{$this->vehicle_make} {$this->vehicle_model} — {$this->vehicle_registration}";
                 }
 
-                $type = $this->land_use ? " — {$this->land_use}" : '';
+                $type = $this->land_type ? " — {$this->land_type}" : '';
                 return "Plot {$this->plot_number}, {$this->land_address}{$type}";
             }
         );

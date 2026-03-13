@@ -63,6 +63,7 @@ class CollateralController extends Controller
             'plot_number'          => 'required_if:asset_type,land|nullable|string|max:100',
             'title_deed_number'    => 'nullable|string|max:100',
             'land_address'         => 'nullable|string|max:500',
+            'land_type'            => 'nullable|string|max:60',
             // Common
             'estimated_value'      => 'nullable|numeric|min:0',
             'valuation_date'       => 'nullable|date|before_or_equal:today',

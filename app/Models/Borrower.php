@@ -39,6 +39,12 @@ class Borrower extends Model
         'photo_path',
         'assigned_officer_id',
         'registered_by',
+        'nok_name',
+        'nok_nrc',
+        'nok_phone',
+        'nok_email',
+        'nok_address',
+        'nok_relationship',
     ];
 
     protected function casts(): array

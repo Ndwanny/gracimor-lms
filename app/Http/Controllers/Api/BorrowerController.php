@@ -82,6 +82,12 @@ class BorrowerController extends Controller
             'work_address'       => 'nullable|string',
             'assigned_officer_id'=> 'nullable|exists:users,id',
             'internal_notes'     => 'nullable|string',
+            'nok_name'           => 'nullable|string|max:150',
+            'nok_nrc'            => 'nullable|string|max:30',
+            'nok_phone'          => 'nullable|string|max:20',
+            'nok_email'          => 'nullable|email|max:150',
+            'nok_address'        => 'nullable|string',
+            'nok_relationship'   => 'nullable|string|max:60',
         ]);
 
         $borrower = $this->borrowerService->create($validated, Auth::user());

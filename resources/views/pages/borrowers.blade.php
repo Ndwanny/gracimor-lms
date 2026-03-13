@@ -1284,6 +1284,19 @@ body { overflow-x: hidden; }
               <div class="field"><label>Work Address</label><input class="finput" type="text" placeholder="Business / employer address"></div>
               <div class="field span2"><label>Internal Notes</label><textarea class="ftxtarea" placeholder="Any relevant notes about this borrower's financial situation…" x-model="f.notes"></textarea></div>
             </div>
+          </div>
+
+          <!-- Next of Kin -->
+          <div class="fsec" style="margin-top:18px">
+            <div class="fsec-hd"><div class="fsec-ic" style="background:rgba(139,92,246,.15)">👨‍👩‍👦</div><div class="fsec-title">Next of Kin</div></div>
+            <div class="fsec-body">
+              <div class="field"><label>Full Name</label><input class="finput" type="text" placeholder="Next of kin full name" x-model="f.nokName"></div>
+              <div class="field"><label>Relationship</label><input class="finput" type="text" placeholder="e.g. Spouse, Parent, Sibling" x-model="f.nokRelation"></div>
+              <div class="field"><label>NRC / Passport No.</label><input class="finput" type="text" placeholder="NRC number" x-model="f.nokNrc"></div>
+              <div class="field"><label>Phone Number</label><input class="finput" type="tel" placeholder="+260 9XX XXXXXX" x-model="f.nokPhone"></div>
+              <div class="field"><label>Email</label><input class="finput" type="email" placeholder="email@example.com" x-model="f.nokEmail"></div>
+              <div class="field"><label>Address</label><input class="finput" type="text" placeholder="Physical address" x-model="f.nokAddress"></div>
+            </div>
             <div class="form-actions">
               <button class="btn-g" @click="step=1">← Back</button>
               <button class="btn-p" @click="step=3">Next: Collateral →</button>
@@ -1610,6 +1623,7 @@ body { overflow-x: hidden; }
       f: { fn:'',ln:'',nrc:'',dob:'',gender:'',ph:'',ph2:'',email:'',addr:'',city:'',emp:'',employer:'',job:'',income:'',notes:'',coll:'',
            vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',
            lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',lType:'Bare Land',
+           nokName:'',nokNrc:'',nokPhone:'',nokEmail:'',nokAddress:'',nokRelation:'',
            docNrc:null,docPayslip:null,docColl:null,docPhoto:null },
 
       all: [
@@ -1765,7 +1779,7 @@ body { overflow-x: hidden; }
             land_address:      this.addColl.lAddress || null,
             land_size_sqm:     this.addColl.lSize    ? parseFloat(this.addColl.lSize) : null,
             estimated_value:   this.addColl.lValue   ? parseFloat(this.addColl.lValue) : null,
-            land_use:          this.addColl.lType    || null,
+            land_type:         this.addColl.lType    || null,
           });
         }
         try {
@@ -1917,6 +1931,12 @@ body { overflow-x: hidden; }
           job_title:           this.f.job      || null,
           monthly_income:      this.f.income   || null,
           internal_notes:      this.f.notes    || null,
+          nok_name:            this.f.nokName      || null,
+          nok_nrc:             this.f.nokNrc       || null,
+          nok_phone:           this.f.nokPhone     || null,
+          nok_email:           this.f.nokEmail     || null,
+          nok_address:         this.f.nokAddress   || null,
+          nok_relationship:    this.f.nokRelation  || null,
         };
         try {
           const res  = await fetch('/api/borrowers', {
@@ -1956,7 +1976,7 @@ body { overflow-x: hidden; }
                 land_address:      this.f.lAddress || null,
                 land_size_sqm:     this.f.lSize    ? parseFloat(this.f.lSize) : null,
                 estimated_value:   this.f.lValue   ? parseFloat(this.f.lValue) : null,
-                land_use:          this.f.lType    || null,
+                land_type:         this.f.lType    || null,
               });
             }
             const collRes = await fetch('/api/collateral', {
@@ -1991,7 +2011,7 @@ body { overflow-x: hidden; }
           this.showToast('✓ Borrower registered! ' + data.borrower.borrower_number + ' created.');
           this.view = 'list';
           this.step = 1;
-          this.f = { fn:'',ln:'',nrc:'',dob:'',gender:'',ph:'',ph2:'',email:'',addr:'',city:'',emp:'',employer:'',job:'',income:'',notes:'',coll:'',docNrc:null,docPayslip:null,docColl:null,docPhoto:null };
+          this.f = { fn:'',ln:'',nrc:'',dob:'',gender:'',ph:'',ph2:'',email:'',addr:'',city:'',emp:'',employer:'',job:'',income:'',notes:'',coll:'',vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',lType:'Bare Land',nokName:'',nokNrc:'',nokPhone:'',nokEmail:'',nokAddress:'',nokRelation:'',docNrc:null,docPayslip:null,docColl:null,docPhoto:null };
           await this.loadBorrowers();
         } catch (err) {
           this.showToast('✗ Network error. Please try again.');
