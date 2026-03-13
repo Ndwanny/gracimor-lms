@@ -65,7 +65,8 @@ class CollateralAsset extends Model
                     return "{$this->vehicle_make} {$this->vehicle_model} — {$this->vehicle_registration}";
                 }
 
-                return "Plot {$this->plot_number}, {$this->land_address}";
+                $type = $this->land_use ? " — {$this->land_use}" : '';
+                return "Plot {$this->plot_number}, {$this->land_address}{$type}";
             }
         );
     }

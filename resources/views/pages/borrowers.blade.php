@@ -1332,7 +1332,7 @@ body { overflow-x: hidden; }
                 <div class="field"><label>Size (m²)</label><input class="finput" type="number" placeholder="e.g. 800" x-model="f.lSize"></div>
                 <div class="field"><label>Ownership Type</label><select class="fsel"><option>Freehold</option><option>Leasehold</option><option>Customary</option></select></div>
                 <div class="field"><label>Estimated Value (K) <span class="req">*</span></label><input class="finput" type="number" placeholder="0.00" x-model="f.lValue"></div>
-                <div class="field"><label>Land Use</label><select class="fsel"><option>Residential</option><option>Commercial</option><option>Agricultural</option></select></div>
+                <div class="field"><label>Land Type</label><select class="fsel" x-model="f.lType"><option value="Bare Land">Bare Land</option><option value="Farm Land">Farm Land</option><option value="House">House</option></select></div>
                 <div class="field"><label>GPS Latitude</label><input class="finput" type="text" placeholder="-15.4166"></div>
                 <div class="field"><label>GPS Longitude</label><input class="finput" type="text" placeholder="28.2833"></div>
               </div>
@@ -1479,6 +1479,7 @@ body { overflow-x: hidden; }
           <div class="field" style="grid-column:span 2"><label>Location / Address</label><input class="finput" type="text" placeholder="Full physical address" x-model="addColl.lAddress"></div>
           <div class="field"><label>Size (m²)</label><input class="finput" type="number" placeholder="e.g. 800" x-model="addColl.lSize"></div>
           <div class="field"><label>Estimated Value (K)</label><input class="finput" type="number" placeholder="0.00" x-model="addColl.lValue"></div>
+          <div class="field"><label>Land Type</label><select class="fsel" x-model="addColl.lType"><option value="Bare Land">Bare Land</option><option value="Farm Land">Farm Land</option><option value="House">House</option></select></div>
         </div>
       </div>
       <div style="padding:14px 22px;border-top:1px solid var(--navy-line);display:flex;justify-content:flex-end;gap:10px">
@@ -1604,11 +1605,11 @@ body { overflow-x: hidden; }
       editData: {},
       showUploadModal: false, uploadFile: null, uploadType: 'other', uploadSaving: false,
       showAddColl: false, addCollSaving: false,
-      addColl: { asset_type:'vehicle', vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'' },
+      addColl: { asset_type:'vehicle', vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',lType:'Bare Land' },
 
       f: { fn:'',ln:'',nrc:'',dob:'',gender:'',ph:'',ph2:'',email:'',addr:'',city:'',emp:'',employer:'',job:'',income:'',notes:'',coll:'',
            vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',
-           lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',
+           lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',lType:'Bare Land',
            docNrc:null,docPayslip:null,docColl:null,docPhoto:null },
 
       all: [
@@ -1734,7 +1735,7 @@ body { overflow-x: hidden; }
       },
 
       openAddColl() {
-        this.addColl = { asset_type:'vehicle', vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'' };
+        this.addColl = { asset_type:'vehicle', vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',lType:'Bare Land' };
         this.showAddColl = true;
       },
 
@@ -1764,6 +1765,7 @@ body { overflow-x: hidden; }
             land_address:      this.addColl.lAddress || null,
             land_size_sqm:     this.addColl.lSize    ? parseFloat(this.addColl.lSize) : null,
             estimated_value:   this.addColl.lValue   ? parseFloat(this.addColl.lValue) : null,
+            land_use:          this.addColl.lType    || null,
           });
         }
         try {
@@ -1954,6 +1956,7 @@ body { overflow-x: hidden; }
                 land_address:      this.f.lAddress || null,
                 land_size_sqm:     this.f.lSize    ? parseFloat(this.f.lSize) : null,
                 estimated_value:   this.f.lValue   ? parseFloat(this.f.lValue) : null,
+                land_use:          this.f.lType    || null,
               });
             }
             const collRes = await fetch('/api/collateral', {
