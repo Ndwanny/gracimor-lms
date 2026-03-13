@@ -1792,15 +1792,15 @@ body { overflow-x: hidden; }
                   <div style="font-size:12px; color:var(--slate); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">If Fully Waived Today</div>
                   <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                     <span style="font-size:13px; color:var(--slate);">Penalties to waive</span>
-                    <span class="mono" style="color:var(--amber);" x-text="'K '+(selectedLoan?.penalty||4620).toLocaleString()"></span>
+                    <span class="mono" style="color:var(--amber);" x-text="'K '+((selectedLoan?.penalty) ?? 0).toLocaleString()"></span>
                   </div>
                   <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                     <span style="font-size:13px; color:var(--slate);">Remaining after waiver</span>
-                    <span class="mono" style="color:var(--white);" x-text="'K '+(selectedLoan?.instalment||8780).toLocaleString()"></span>
+                    <span class="mono" style="color:var(--white);" x-text="'K '+((selectedLoan?.instalment) ?? 0).toLocaleString()"></span>
                   </div>
                   <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px solid var(--border);">
                     <span style="font-size:13px; font-weight:700;">New Balance</span>
-                    <span class="money" style="color:var(--teal2); font-size:16px;" x-text="'K '+(selectedLoan?.instalment||8780).toLocaleString()"></span>
+                    <span class="money" style="color:var(--teal2); font-size:16px;" x-text="'K '+((selectedLoan?.instalment) ?? 0).toLocaleString()"></span>
                   </div>
                 </div>
               </div>
@@ -1927,8 +1927,8 @@ body { overflow-x: hidden; }
 
       <div class="confirm-box">
         <div style="font-size:13px; color:var(--slate); text-align:center;">Total penalty to be waived</div>
-        <div class="confirm-amount" x-text="'K ' + (waiveLoan?.penalty || 4620).toLocaleString()"></div>
-        <div style="font-size:12px; color:var(--slate); text-align:center;" x-text="'Outstanding across ' + (waiveLoan?.penaltyCount || 5) + ' penalty events'"></div>
+        <div class="confirm-amount" x-text="'K ' + ((waiveLoan?.penalty) ?? 0).toLocaleString()"></div>
+        <div style="font-size:12px; color:var(--slate); text-align:center;" x-text="'Outstanding across ' + ((waiveLoan?.penaltyCount) ?? 0) + ' penalty events'"></div>
       </div>
 
       <div class="form-group">
