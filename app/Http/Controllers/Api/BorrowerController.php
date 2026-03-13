@@ -198,7 +198,8 @@ class BorrowerController extends Controller
             'document_type' => 'required|in:national_id,payslip,bank_statement,vehicle_logbook,vehicle_photos,land_title_deed,valuation_report,loan_agreement,guarantor_id,proof_of_residence,other',
         ]);
 
-        $path = $request->file('file')->store("borrowers/{$borrower->id}/documents", 'local');
+        $disk = config('filesystems.default', 'local');
+        $path = $request->file('file')->store("borrowers/{$borrower->id}/documents", $disk);
 
         $document = $borrower->documents()->create([
             'document_type'   => $request->document_type,
@@ -207,7 +208,7 @@ class BorrowerController extends Controller
             'file_name'       => $request->file('file')->getClientOriginalName(),
             'mime_type'       => $request->file('file')->getMimeType(),
             'file_size_bytes' => $request->file('file')->getSize(),
-            'disk'            => 'local',
+            'disk'            => $disk,
             'uploaded_by'     => Auth::id(),
         ]);
 
