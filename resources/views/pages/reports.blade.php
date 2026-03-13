@@ -1057,7 +1057,7 @@ body { overflow-x: hidden; max-width: 100vw; }
             <div class="data-panel">
               <div class="data-head">
                 <div class="data-title">Portfolio by Loan Product</div>
-                <div class="rec-count">2 products · 142 active loans</div>
+                <div class="rec-count" x-text="productRows.length+' product'+(productRows.length===1?'':'s')+' · '+portfolioKpis.activeLoans+' active loans'"></div>
               </div>
               <table class="dtable">
                 <thead><tr>
@@ -1153,10 +1153,14 @@ body { overflow-x: hidden; max-width: 100vw; }
                   </template>
                 </tbody>
                 <tfoot><tr>
-                  <td colspan="2">TOTALS / AVERAGE</td><td class="r">142</td>
-                  <td class="r">K 331,770</td><td class="r">K 312,500</td>
-                  <td class="r">127</td><td class="r">94.2%</td>
-                  <td class="r" style="color:var(--red)">14</td><td class="r">—</td>
+                  <td colspan="2">TOTALS / AVERAGE</td>
+                  <td class="r" x-text="collectionTotals.loans"></td>
+                  <td class="r">—</td>
+                  <td class="r money" x-text="_fmtK(collectionTotals.col)"></td>
+                  <td class="r" x-text="collectionTotals.rec"></td>
+                  <td class="r">—</td>
+                  <td class="r" :style="collectionTotals.ov>0?'color:var(--red)':'color:var(--green)'" x-text="collectionTotals.ov"></td>
+                  <td class="r">—</td>
                 </tr></tfoot>
               </table>
             </div>
@@ -1165,7 +1169,7 @@ body { overflow-x: hidden; max-width: 100vw; }
             <div class="data-panel">
               <div class="data-head">
                 <div class="data-title" x-text="'Payment Receipts — ' + thisMonthFull"></div>
-                <div class="rec-count">Showing 12 of 127</div>
+                <div class="rec-count" x-text="'Showing '+receipts.length+' of '+collectionKpis.receiptCount"></div>
               </div>
               <table class="dtable">
                 <thead><tr>
@@ -1196,10 +1200,11 @@ body { overflow-x: hidden; max-width: 100vw; }
                   </template>
                 </tbody>
                 <tfoot><tr>
-                  <td colspan="5">TOTALS (127 receipts)</td>
-                  <td class="r">K 233,420</td><td class="r">K 70,840</td>
-                  <td class="r" style="color:var(--amber)">K 8,240</td>
-                  <td class="r" style="font-size:15px">K 312,500</td>
+                  <td colspan="5" x-text="'TOTALS ('+collectionKpis.receiptCount+' receipts)'">TOTALS</td>
+                  <td class="r" x-text="_fmtK(collectionTotals.pri)"></td>
+                  <td class="r" x-text="_fmtK(collectionTotals.int)"></td>
+                  <td class="r" :style="collectionTotals.pen>0?'color:var(--amber)':''" x-text="collectionTotals.pen>0?_fmtK(collectionTotals.pen):'—'"></td>
+                  <td class="r money" style="font-size:15px" x-text="_fmtK(collectionTotals.tot)"></td>
                   <td colspan="2"></td>
                 </tr></tfoot>
               </table>
@@ -1553,6 +1558,7 @@ function app(){
     productTotals: { loans:0, disbursed:'0', outstanding:'0', collected:'0', overdue:0, par:0, avgTerm:0 },
     agingTotals: { loans:0, inst:0, pri:0, int:0, pen:0, tot:0 },
     collectionKpis: { totalCollected:0, receiptCount:0, collectionsRate:0, penaltiesCollected:0 },
+    collectionTotals: { loans:0, col:0, rec:0, ov:0, pri:0, int:0, pen:0, tot:0 },
 
     async init(){
       const now = new Date();
@@ -1787,21 +1793,38 @@ function app(){
       const res = await fetch(`/api/reports/collections?date_from=${dateFrom}&date_to=${dateTo}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
       if (!res.ok) throw new Error('Collections API failed');
       const d = await res.json();
-      const tot = d.totals || {};
-      const penColl = (d.payments?.data||[]).reduce((s,p) => s + (parseFloat(p.towards_penalty)||0), 0);
+      const pt = d.payment_totals || {};
       this.collectionKpis = {
-        totalCollected: tot.total_collected || 0,
-        receiptCount:   tot.receipt_count || 0,
-        collectionsRate: 0,
-        penaltiesCollected: penColl,
+        totalCollected:    parseFloat(pt.total_collected)||0,
+        receiptCount:      parseInt(pt.receipt_count)||0,
+        collectionsRate:   0,
+        penaltiesCollected:parseFloat(pt.total_penalty)||0,
       };
       this.officers = (d.officer_perf || []).map(o => {
         const name = o.name || '';
         const [c1,c2] = this._rptAvatar(name);
-        return { name, ini:this._rptInitials(name), c1, c2, role:'Loan Officer',
-          loans: o.unique_loans||0, due:0, col:parseFloat(o.total_collected)||0,
-          rec: o.receipt_count||0, rate:100, ov:0, ok:true };
+        const col = parseFloat(o.total_collected)||0;
+        return { name, ini:this._rptInitials(name), c1, c2,
+          role: (o.role||'loan_officer').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),
+          loans: parseInt(o.unique_loans)||0, col, pri:parseFloat(o.total_principal)||0,
+          int:parseFloat(o.total_interest)||0, pen:parseFloat(o.total_penalty)||0,
+          rec: parseInt(o.receipt_count)||0, ov: parseInt(o.overdue_count)||0, ok:true };
       });
+      // Officer tfoot totals computed from officers array
+      this.collectionTotals = this.officers.reduce((a,o) => ({
+        loans: a.loans+o.loans, col: a.col+o.col, rec: a.rec+o.rec, ov: a.ov+o.ov,
+        pri: a.pri+(pt.total_principal?0:0), int:0, pen:0, tot:0
+      }), {loans:0, col:0, rec:0, ov:0, pri:0, int:0, pen:0, tot:0});
+      this.collectionTotals = {
+        loans: this.officers.reduce((s,o)=>s+o.loans,0),
+        col:   parseFloat(pt.total_collected)||0,
+        rec:   parseInt(pt.receipt_count)||0,
+        ov:    this.officers.reduce((s,o)=>s+o.ov,0),
+        pri:   parseFloat(pt.total_principal)||0,
+        int:   parseFloat(pt.total_interest)||0,
+        pen:   parseFloat(pt.total_penalty)||0,
+        tot:   parseFloat(pt.total_collected)||0,
+      };
       const methIc = {cash:'💵',bank_transfer:'🏦',mobile_money:'📱',cheque:'📋'};
       const typeMap = {instalment:'Full Instalment',partial:'Partial',early_settlement:'Early Settlement',penalty:'Penalty'};
       this.receipts = (d.payments?.data||[]).map(p => {

@@ -148,30 +148,40 @@ class ReportController extends Controller
         // Officer performance breakdown
         $officerPerf = DB::table('payments')
             ->join('users', 'payments.recorded_by', '=', 'users.id')
-            ->whereBetween('payment_date', [$dateFrom, $dateTo])
+            ->whereBetween('payments.payment_date', [$dateFrom, $dateTo])
             ->selectRaw('
                 users.id,
                 users.name,
+                users.role,
                 COUNT(DISTINCT payments.loan_id) as unique_loans,
                 COUNT(payments.id) as receipt_count,
-                SUM(payments.amount_received) as total_collected
+                SUM(payments.amount_received) as total_collected,
+                SUM(payments.towards_principal) as total_principal,
+                SUM(payments.towards_interest) as total_interest,
+                SUM(payments.towards_penalty) as total_penalty,
+                (SELECT COUNT(*) FROM loans
+                    WHERE loans.applied_by = users.id
+                    AND loans.status = "overdue") as overdue_count
             ')
-            ->groupBy('users.id', 'users.name')
+            ->groupBy('users.id', 'users.name', 'users.role')
             ->orderByDesc('total_collected')
             ->get();
 
-        // Period totals
-        $totals = Payment::whereBetween('payment_date', [$dateFrom, $dateTo])
+        // Period totals — full period breakdown for tfoot
+        $paymentTotals = Payment::whereBetween('payment_date', [$dateFrom, $dateTo])
+            ->when($request->officer_id, fn ($q) => $q->where('recorded_by', $request->officer_id))
             ->selectRaw('
                 COUNT(*) as receipt_count,
-                SUM(amount_received) as total_collected
+                SUM(amount_received) as total_collected,
+                SUM(towards_principal) as total_principal,
+                SUM(towards_interest) as total_interest,
+                SUM(towards_penalty) as total_penalty
             ')
-            ->when($request->officer_id, fn ($q) => $q->where('recorded_by', $request->officer_id))
             ->first();
 
         return response()->json([
             'period'          => ['from' => $dateFrom, 'to' => $dateTo],
-            'totals'          => $totals,
+            'payment_totals'  => $paymentTotals,
             'officer_perf'    => $officerPerf,
             'payments'        => $paymentsQuery->paginate(50),
         ]);
