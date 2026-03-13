@@ -1868,13 +1868,16 @@ body { overflow-x: hidden; }
           const resp = await fetch(`/api/borrowers/${borrowerId}/documents/${docId}/download`, {
             headers: { 'Authorization': 'Bearer ' + token }
           });
-          if (!resp.ok) { this.showToast('✗ Download failed.'); return; }
+          if (!resp.ok) {
+            if (resp.status === 404) { this.showToast('✗ File not found on server.'); return; }
+            this.showToast(`✗ Download failed (HTTP ${resp.status}).`); return;
+          }
           const blob = await resp.blob();
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url; a.download = fileName; a.click();
           URL.revokeObjectURL(url);
-        } catch { this.showToast('✗ Network error.'); }
+        } catch (e) { this.showToast(`✗ Network error: ${e.message}`); }
       },
 
       async viewDoc(borrowerId, docId) {
@@ -1883,11 +1886,15 @@ body { overflow-x: hidden; }
           const resp = await fetch(`/api/borrowers/${borrowerId}/documents/${docId}/view`, {
             headers: { 'Authorization': 'Bearer ' + token }
           });
-          if (!resp.ok) { this.showToast('✗ Could not open document.'); return; }
+          if (!resp.ok) {
+            if (resp.status === 404) { this.showToast('✗ File not found on server.'); return; }
+            if (resp.status === 403) { this.showToast('✗ Access denied.'); return; }
+            this.showToast(`✗ Could not open document (HTTP ${resp.status}).`); return;
+          }
           const blob = await resp.blob();
           const url = URL.createObjectURL(blob);
           window.open(url, '_blank');
-        } catch { this.showToast('✗ Network error.'); }
+        } catch (e) { this.showToast(`✗ Network error: ${e.message}`); }
       },
 
       async submit() {

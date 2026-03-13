@@ -81,11 +81,21 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
 
-            // 403 — authorisation
+            // 403 — authorisation (gate/policy)
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'message' => 'This action is unauthorized.',
                 ], 403);
+            }
+
+            // Generic HTTP exceptions (abort(403), abort(404) etc.) — pass status through
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException) {
+                $msg = $e->getMessage() ?: match ($e->getStatusCode()) {
+                    403 => 'Forbidden.',
+                    404 => 'Not found.',
+                    default => 'HTTP error.',
+                };
+                return response()->json(['message' => $msg], $e->getStatusCode());
             }
 
             // Production: swallow stack traces
