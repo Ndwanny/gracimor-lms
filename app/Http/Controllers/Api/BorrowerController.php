@@ -222,9 +222,11 @@ class BorrowerController extends Controller
     // ──────────────────────────────────────────────────────────────────────────
     public function downloadDocument(Borrower $borrower, Document $document)
     {
-        abort_unless($document->documentable_id === $borrower->id, 403);
+        abort_unless((int) $document->documentable_id === $borrower->id &&
+                     $document->documentable_type === Borrower::class, 403);
 
         $disk = $document->disk ?? 'local';
+        abort_unless(Storage::disk($disk)->exists($document->file_path), 404);
         return Storage::disk($disk)->download($document->file_path, $document->file_name);
     }
 
@@ -234,9 +236,11 @@ class BorrowerController extends Controller
     // ──────────────────────────────────────────────────────────────────────────
     public function viewDocument(Borrower $borrower, Document $document)
     {
-        abort_unless($document->documentable_id === $borrower->id, 403);
+        abort_unless((int) $document->documentable_id === $borrower->id &&
+                     $document->documentable_type === Borrower::class, 403);
 
         $disk = $document->disk ?? 'local';
+        abort_unless(Storage::disk($disk)->exists($document->file_path), 404);
         return Storage::disk($disk)->response($document->file_path);
     }
 
