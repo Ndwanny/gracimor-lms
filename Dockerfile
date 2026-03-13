@@ -40,8 +40,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 EXPOSE 8080
 
-CMD php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache \
+CMD php artisan config:cache || true \
+    && php artisan route:cache || true \
     && php artisan migrate --force \
     && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
