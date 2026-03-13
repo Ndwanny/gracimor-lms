@@ -27,19 +27,20 @@ WORKDIR /app
 # Copy project
 COPY . .
 
-# Create required directories before composer runs package:discover
+# Create required directories and storage symlink at build time
 RUN mkdir -p bootstrap/cache \
         storage/framework/{sessions,views,cache} \
         storage/logs \
-    && chmod -R 775 bootstrap/cache storage
+        storage/app/public \
+    && chmod -R 775 bootstrap/cache storage \
+    && ln -sf /app/storage/app/public /app/public/storage
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 EXPOSE 8080
 
-CMD php artisan storage:link 2>/dev/null || true \
-    && php artisan config:cache \
+CMD php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache \
     && php artisan migrate --force \
