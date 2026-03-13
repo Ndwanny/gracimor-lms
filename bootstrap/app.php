@@ -34,8 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active.user' => EnsureUserIsActive::class,
         ]);
 
-        // Sanctum stateful domains (for SPA cookie-based auth if needed)
-        $middleware->statefulApi();
+        // Token-based auth (Bearer) — statefulApi() not needed
     })
 
     // ── Providers ─────────────────────────────────────────────────────────────
