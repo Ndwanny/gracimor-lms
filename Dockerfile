@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-# System dependencies
+# System dependencies (cache bust: v2)
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
