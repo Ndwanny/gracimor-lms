@@ -38,7 +38,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 EXPOSE 8080
 
-CMD php artisan storage:link --relative 2>/dev/null || true \
+CMD php artisan storage:link 2>/dev/null || true \
     && php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache \
