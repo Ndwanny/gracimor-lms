@@ -53,9 +53,15 @@ class ReportController extends Controller
             ')
             ->first();
 
-        $kpis['par_30'] = round(($overdueAmounts->par30 ?? 0) / $portfolioValue * 100, 2);
-        $kpis['par_60'] = round(($overdueAmounts->par60 ?? 0) / $portfolioValue * 100, 2);
-        $kpis['par_90'] = round(($overdueAmounts->par90 ?? 0) / $portfolioValue * 100, 2);
+        $kpis['par_30']        = round(($overdueAmounts->par30 ?? 0) / $portfolioValue * 100, 2);
+        $kpis['par_60']        = round(($overdueAmounts->par60 ?? 0) / $portfolioValue * 100, 2);
+        $kpis['par_90']        = round(($overdueAmounts->par90 ?? 0) / $portfolioValue * 100, 2);
+        $kpis['par30_amount']  = (float) ($overdueAmounts->par30 ?? 0);
+        $kpis['par60_amount']  = (float) ($overdueAmounts->par60 ?? 0);
+        $kpis['par90_amount']  = (float) ($overdueAmounts->par90 ?? 0);
+        $kpis['avg_loan_size'] = $kpis['total_active_loans'] > 0
+            ? round($kpis['total_outstanding'] / $kpis['total_active_loans'], 2)
+            : 0;
 
         // Product breakdown
         $byProduct = DB::table('loans')
@@ -70,7 +76,11 @@ class ReportController extends Controller
                 SUM(loans.principal_amount) as total_disbursed,
                 SUM(CASE WHEN loans.status IN ("active","overdue") THEN loan_balances.total_outstanding ELSE 0 END) as outstanding,
                 SUM(CASE WHEN loans.status = "overdue" THEN 1 ELSE 0 END) as overdue_count,
-                AVG(loans.term_months) as avg_term
+                AVG(loans.term_months) as avg_term,
+                (SELECT COALESCE(SUM(p2.amount_received),0) FROM payments p2
+                    JOIN loans l2 ON p2.loan_id = l2.id
+                    WHERE l2.loan_product_id = loan_products.id
+                    AND p2.payment_date >= DATE_FORMAT(NOW(), "%Y-%m-01")) as collected_mtd
             ')
             ->groupBy('loan_products.id', 'loan_products.name')
             ->get();
@@ -113,10 +123,13 @@ class ReportController extends Controller
     public function collections(Request $request): JsonResponse
     {
         $request->validate([
-            'date_from'  => 'required|date',
-            'date_to'    => 'required|date|after_or_equal:date_from',
+            'date_from'  => 'nullable|date',
+            'date_to'    => 'nullable|date|after_or_equal:date_from',
             'officer_id' => 'nullable|exists:users,id',
         ]);
+
+        $dateFrom = $request->date_from ?? now()->startOfMonth()->toDateString();
+        $dateTo   = $request->date_to   ?? now()->toDateString();
 
         $paymentsQuery = Payment::with([
             'loan:id,loan_number,borrower_id,loan_product_id',
@@ -125,7 +138,7 @@ class ReportController extends Controller
             'recordedBy:id,name',
             'paymentAllocations',
         ])
-        ->whereBetween('payment_date', [$request->date_from, $request->date_to])
+        ->whereBetween('payment_date', [$dateFrom, $dateTo])
         ->orderByDesc('payment_date');
 
         if ($request->officer_id) {
@@ -135,7 +148,7 @@ class ReportController extends Controller
         // Officer performance breakdown
         $officerPerf = DB::table('payments')
             ->join('users', 'payments.recorded_by', '=', 'users.id')
-            ->whereBetween('payment_date', [$request->date_from, $request->date_to])
+            ->whereBetween('payment_date', [$dateFrom, $dateTo])
             ->selectRaw('
                 users.id,
                 users.name,
@@ -148,7 +161,7 @@ class ReportController extends Controller
             ->get();
 
         // Period totals
-        $totals = Payment::whereBetween('payment_date', [$request->date_from, $request->date_to])
+        $totals = Payment::whereBetween('payment_date', [$dateFrom, $dateTo])
             ->selectRaw('
                 COUNT(*) as receipt_count,
                 SUM(amount_received) as total_collected
@@ -157,7 +170,7 @@ class ReportController extends Controller
             ->first();
 
         return response()->json([
-            'period'          => ['from' => $request->date_from, 'to' => $request->date_to],
+            'period'          => ['from' => $dateFrom, 'to' => $dateTo],
             'totals'          => $totals,
             'officer_perf'    => $officerPerf,
             'payments'        => $paymentsQuery->paginate(50),

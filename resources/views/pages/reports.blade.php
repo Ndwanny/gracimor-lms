@@ -916,10 +916,10 @@ body { overflow-x: hidden; max-width: 100vw; }
           <div x-show="rt==='statement'">
             <label class="form-label">Borrower / Loan</label>
             <select class="form-select" x-model="borrower">
-              <option value="GN">Grace Nkonde — LN-20260009</option>
-              <option value="BM">Bwalya Mwanza — LN-20260032</option>
-              <option value="DP">Daniel Phiri — LN-20260041</option>
-              <option value="CM">Charity Mutale — LN-20260018</option>
+              <option value="">— Select a loan —</option>
+              <template x-for="l in loanList" :key="l.id">
+                <option :value="l.id" x-text="l.label"></option>
+              </template>
             </select>
           </div>
 
@@ -1003,21 +1003,21 @@ body { overflow-x: hidden; max-width: 100vw; }
                 </div>
               </div>
               <div class="rh-kpis">
-                <div class="rh-kpi"><div class="rh-kpi-label">Total Portfolio</div><div class="rh-kpi-value" style="color:var(--teal2)">K 2.84M</div></div>
-                <div class="rh-kpi"><div class="rh-kpi-label">Active Loans</div><div class="rh-kpi-value" style="color:var(--green)">142</div></div>
-                <div class="rh-kpi"><div class="rh-kpi-label">PAR 30</div><div class="rh-kpi-value" style="color:var(--amber)">9.8%</div></div>
-                <div class="rh-kpi"><div class="rh-kpi-label">Collections Rate</div><div class="rh-kpi-value" style="color:var(--gold2)">94.2%</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Total Portfolio</div><div class="rh-kpi-value" style="color:var(--teal2)" x-text="_fmtK(portfolioKpis.totalOutstanding)">K —</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Active Loans</div><div class="rh-kpi-value" style="color:var(--green)" x-text="portfolioKpis.activeLoans">—</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">PAR 30</div><div class="rh-kpi-value" style="color:var(--amber)" x-text="portfolioKpis.par30 + '%'">—</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Collections Rate</div><div class="rh-kpi-value" style="color:var(--gold2)" x-text="portfolioKpis.collectionsRate + '%'">—</div></div>
               </div>
             </div>
 
             <!-- 6 KPI tiles -->
             <div class="stats-grid stagger" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
-              <div class="stat-tile t-teal"><div class="st-label">Total Disbursed (YTD)</div><div class="st-value">K 4.21M</div><div class="st-sub"><span class="st-up">▲ 12%</span> vs 2025</div></div>
-              <div class="stat-tile t-gold"><div class="st-label">Total Collected (YTD)</div><div class="st-value">K 1.87M</div><div class="st-sub"><span class="st-up">▲ 8%</span> vs 2025</div></div>
-              <div class="stat-tile t-green"><div class="st-label">Loans Closed (YTD)</div><div class="st-value">38</div><div class="st-sub"><span class="st-up">▲ 5</span> vs last year</div></div>
-              <div class="stat-tile t-red"><div class="st-label">Overdue Loans</div><div class="st-value">14</div><div class="st-sub"><span class="st-dn">▲ 2</span> this week</div></div>
-              <div class="stat-tile t-amber"><div class="st-label">Penalties Outstanding</div><div class="st-value">K 48,920</div><div class="st-sub"><span class="st-dn">▲ K 3,200</span> this month</div></div>
-              <div class="stat-tile t-purple"><div class="st-label">Average Loan Size</div><div class="st-value">K 29,600</div><div class="st-sub">Across 142 active loans</div></div>
+              <div class="stat-tile t-teal"><div class="st-label">Total Disbursed (Period)</div><div class="st-value" x-text="_fmtK(portfolioKpis.disbursedPeriod)">K —</div><div class="st-sub" x-text="collectionPeriod"></div></div>
+              <div class="stat-tile t-gold"><div class="st-label">Total Collected (Period)</div><div class="st-value" x-text="_fmtK(portfolioKpis.collectedPeriod)">K —</div><div class="st-sub" x-text="collectionPeriod"></div></div>
+              <div class="stat-tile t-green"><div class="st-label">Loans Closed (Period)</div><div class="st-value" x-text="portfolioKpis.closedPeriod">—</div><div class="st-sub" x-text="collectionPeriod"></div></div>
+              <div class="stat-tile t-red"><div class="st-label">Overdue Loans</div><div class="st-value" x-text="portfolioKpis.overdueLoans">—</div><div class="st-sub">Currently overdue</div></div>
+              <div class="stat-tile t-amber"><div class="st-label">Penalties Outstanding</div><div class="st-value" x-text="_fmtK(portfolioKpis.penaltiesOutstanding)">K —</div><div class="st-sub">Across all active loans</div></div>
+              <div class="stat-tile t-purple"><div class="st-label">Average Loan Size</div><div class="st-value" x-text="_fmtK(portfolioKpis.avgLoanSize)">K —</div><div class="st-sub" x-text="'Across ' + portfolioKpis.activeLoans + ' active loans'"></div></div>
             </div>
 
             <!-- Disbursements chart -->
@@ -1080,9 +1080,14 @@ body { overflow-x: hidden; max-width: 100vw; }
                   </template>
                 </tbody>
                 <tfoot><tr>
-                  <td>TOTALS</td><td class="r">142</td><td class="r">K 4,213,400</td>
-                  <td class="r">K 2,840,200</td><td class="r">K 312,500</td>
-                  <td class="r" style="color:var(--red)">14</td><td class="r">9.8%</td><td class="r">8.3 mo</td>
+                  <td>TOTALS</td>
+                  <td class="r" x-text="productTotals.loans"></td>
+                  <td class="r" x-text="'K '+productTotals.disbursed"></td>
+                  <td class="r" x-text="'K '+productTotals.outstanding"></td>
+                  <td class="r" x-text="'K '+productTotals.collected"></td>
+                  <td class="r" style="color:var(--red)" x-text="productTotals.overdue"></td>
+                  <td class="r" x-text="productTotals.par+'%'"></td>
+                  <td class="r" x-text="productTotals.avgTerm ? productTotals.avgTerm+' mo' : '—'"></td>
                 </tr></tfoot>
               </table>
             </div>
@@ -1098,14 +1103,14 @@ body { overflow-x: hidden; max-width: 100vw; }
                 <div class="rh-sub" x-text="'Payment receipts and officer performance — ' + thisMonthFull"></div>
                 <div class="rh-meta">
                   <span class="rh-tag" x-text="collectionPeriod"></span>
-                  <span class="rh-tag">127 Receipts</span>
+                  <span class="rh-tag" x-text="collectionKpis.receiptCount + ' Receipts'"></span>
                 </div>
               </div>
               <div class="rh-kpis">
-                <div class="rh-kpi"><div class="rh-kpi-label">Collected (MTD)</div><div class="rh-kpi-value" style="color:var(--green)">K 312,500</div></div>
-                <div class="rh-kpi"><div class="rh-kpi-label">Receipts Issued</div><div class="rh-kpi-value" style="color:var(--teal2)">127</div></div>
-                <div class="rh-kpi"><div class="rh-kpi-label">Collection Rate</div><div class="rh-kpi-value" style="color:var(--gold2)">94.2%</div></div>
-                <div class="rh-kpi"><div class="rh-kpi-label">Penalties Collected</div><div class="rh-kpi-value" style="color:var(--amber)">K 8,240</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Collected (Period)</div><div class="rh-kpi-value" style="color:var(--green)" x-text="_fmtK(collectionKpis.totalCollected)">K —</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Receipts Issued</div><div class="rh-kpi-value" style="color:var(--teal2)" x-text="collectionKpis.receiptCount">—</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Collection Rate</div><div class="rh-kpi-value" style="color:var(--gold2)" x-text="collectionKpis.collectionsRate + '%'">—</div></div>
+                <div class="rh-kpi"><div class="rh-kpi-label">Penalties Collected</div><div class="rh-kpi-value" style="color:var(--amber)" x-text="_fmtK(collectionKpis.penaltiesCollected)">K —</div></div>
               </div>
             </div>
 
@@ -1113,7 +1118,7 @@ body { overflow-x: hidden; max-width: 100vw; }
             <div class="data-panel" style="margin-bottom:20px">
               <div class="data-head">
                 <div class="data-title" x-text="'Officer Performance — ' + thisMonthFull"></div>
-                <div class="rec-count">3 officers</div>
+                <div class="rec-count" x-text="officers.length + ' officer' + (officers.length===1?'':'s')"></div>
               </div>
               <table class="dtable">
                 <thead><tr>
@@ -1263,10 +1268,14 @@ body { overflow-x: hidden; max-width: 100vw; }
                   </template>
                 </tbody>
                 <tfoot><tr>
-                  <td>TOTALS</td><td class="r">14</td><td class="r">19</td>
-                  <td class="r">K 184,680</td><td class="r">K 71,240</td>
-                  <td class="r" style="color:var(--amber)">K 48,920</td>
-                  <td class="r" style="font-size:15px">K 312,840</td><td class="r">100%</td>
+                  <td>TOTALS</td>
+                  <td class="r" x-text="agingTotals.loans"></td>
+                  <td class="r" x-text="agingTotals.inst"></td>
+                  <td class="r" x-text="'K '+agingTotals.pri.toLocaleString('en-ZM',{maximumFractionDigits:0})"></td>
+                  <td class="r" x-text="'K '+agingTotals.int.toLocaleString('en-ZM',{maximumFractionDigits:0})"></td>
+                  <td class="r" style="color:var(--amber)" x-text="'K '+agingTotals.pen.toLocaleString('en-ZM',{maximumFractionDigits:0})"></td>
+                  <td class="r" style="font-size:15px" x-text="'K '+agingTotals.tot.toLocaleString('en-ZM',{maximumFractionDigits:0})"></td>
+                  <td class="r">100%</td>
                 </tr></tfoot>
               </table>
             </div>
@@ -1328,8 +1337,8 @@ body { overflow-x: hidden; max-width: 100vw; }
             <!-- controls -->
             <div class="stmt-ctrls" style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:14px 18px;background:var(--navy2);border:1px solid var(--border);border-radius:12px">
               <span style="font-size:13px;color:var(--slate)">Showing statement for:</span>
-              <span style="font-size:14px;font-weight:700" x-text="stmts[borrower]?.name"></span>
-              <span class="mono" style="color:var(--teal2);font-size:12px" x-text="stmts[borrower]?.loanNum"></span>
+              <span style="font-size:14px;font-weight:700" x-text="currentStatement?.name"></span>
+              <span class="mono" style="color:var(--teal2);font-size:12px" x-text="currentStatement?.loanNum"></span>
               <div class="sep"></div>
               <button class="tbar-btn outline" @click="exportPDF()">🖨 Print</button>
               <button class="tbar-btn gold"    @click="exportPDF()">📄 Download PDF</button>
@@ -1346,12 +1355,12 @@ body { overflow-x: hidden; max-width: 100vw; }
                   </div>
                   <div style="text-align:right">
                     <div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em">Statement No.</div>
-                    <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700;color:var(--gold2)">STM-20260042</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700;color:var(--gold2)" x-text="currentStatement?.stmtNum || 'STM-?'"></div>
                     <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:4px" x-text="'Generated: ' + todayShort"></div>
                   </div>
                 </div>
                 <div class="stmt-doc-title">Loan Account Statement</div>
-                <div class="stmt-period" x-text="'Period: ' + (stmts[borrower]?.period||'')"></div>
+                <div class="stmt-period" x-text="'Period: ' + (currentStatement?.period||'')"></div>
               </div>
 
               <div class="stmt-body">
@@ -1359,31 +1368,31 @@ body { overflow-x: hidden; max-width: 100vw; }
                 <div class="stmt-info-grid">
                   <div>
                     <div class="stmt-sec-label">Borrower Information</div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Full Name:</span><span class="stmt-info-val" x-text="stmts[borrower]?.name"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Borrower No.:</span><span class="stmt-info-val" x-text="stmts[borrower]?.bNum"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">NRC:</span><span class="stmt-info-val" x-text="stmts[borrower]?.nrc"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Phone:</span><span class="stmt-info-val" x-text="stmts[borrower]?.phone"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Address:</span><span class="stmt-info-val" x-text="stmts[borrower]?.address"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Full Name:</span><span class="stmt-info-val" x-text="currentStatement?.name"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Borrower No.:</span><span class="stmt-info-val" x-text="currentStatement?.bNum"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">NRC:</span><span class="stmt-info-val" x-text="currentStatement?.nrc"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Phone:</span><span class="stmt-info-val" x-text="currentStatement?.phone"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Address:</span><span class="stmt-info-val" x-text="currentStatement?.address"></span></div>
                   </div>
                   <div>
                     <div class="stmt-sec-label">Loan Details</div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Loan No.:</span><span class="stmt-info-val" x-text="stmts[borrower]?.loanNum"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Product:</span><span class="stmt-info-val" x-text="stmts[borrower]?.product"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Principal:</span><span class="stmt-info-val" x-text="stmts[borrower]?.principal"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Interest Rate:</span><span class="stmt-info-val" x-text="stmts[borrower]?.rate"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Term:</span><span class="stmt-info-val" x-text="stmts[borrower]?.term"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Disbursed:</span><span class="stmt-info-val" x-text="stmts[borrower]?.disbursed"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Maturity:</span><span class="stmt-info-val" x-text="stmts[borrower]?.maturity"></span></div>
-                    <div class="stmt-info-row"><span class="stmt-info-key">Loan Officer:</span><span class="stmt-info-val" x-text="stmts[borrower]?.officer"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Loan No.:</span><span class="stmt-info-val" x-text="currentStatement?.loanNum"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Product:</span><span class="stmt-info-val" x-text="currentStatement?.product"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Principal:</span><span class="stmt-info-val" x-text="currentStatement?.principal"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Interest Rate:</span><span class="stmt-info-val" x-text="currentStatement?.rate"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Term:</span><span class="stmt-info-val" x-text="currentStatement?.term"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Disbursed:</span><span class="stmt-info-val" x-text="currentStatement?.disbursed"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Maturity:</span><span class="stmt-info-val" x-text="currentStatement?.maturity"></span></div>
+                    <div class="stmt-info-row"><span class="stmt-info-key">Loan Officer:</span><span class="stmt-info-val" x-text="currentStatement?.officer"></span></div>
                   </div>
                 </div>
 
                 <!-- Summary boxes -->
                 <div class="stmt-sum-boxes">
-                  <div class="sbox"><div class="sbox-label">Principal</div><div class="sbox-value" x-text="stmts[borrower]?.principal"></div></div>
-                  <div class="sbox"><div class="sbox-label">Total Repayable</div><div class="sbox-value gold" x-text="stmts[borrower]?.totalRep"></div></div>
-                  <div class="sbox"><div class="sbox-label">Total Paid</div><div class="sbox-value green" x-text="stmts[borrower]?.totalPaid"></div></div>
-                  <div class="sbox"><div class="sbox-label">Balance Due</div><div class="sbox-value" :class="stmts[borrower]?.balClass" x-text="stmts[borrower]?.balance"></div></div>
+                  <div class="sbox"><div class="sbox-label">Principal</div><div class="sbox-value" x-text="currentStatement?.principal"></div></div>
+                  <div class="sbox"><div class="sbox-label">Total Repayable</div><div class="sbox-value gold" x-text="currentStatement?.totalRep"></div></div>
+                  <div class="sbox"><div class="sbox-label">Total Paid</div><div class="sbox-value green" x-text="currentStatement?.totalPaid"></div></div>
+                  <div class="sbox"><div class="sbox-label">Balance Due</div><div class="sbox-value" :class="currentStatement?.balClass" x-text="currentStatement?.balance"></div></div>
                 </div>
 
                 <!-- Transactions -->
@@ -1395,7 +1404,7 @@ body { overflow-x: hidden; max-width: 100vw; }
                     <th class="r">Penalty</th><th class="r">Amount Paid</th><th class="r">Balance</th>
                   </tr></thead>
                   <tbody>
-                    <template x-for="(tx,i) in stmts[borrower]?.txs" :key="i">
+                    <template x-for="(tx,i) in currentStatement?.txs" :key="i">
                       <tr :class="tx.hl ? 'hl' : ''">
                         <td class="mono" style="color:#5A7494;font-size:11px" x-text="i+1"></td>
                         <td class="mono" style="color:#0e7490;font-size:11.5px" x-text="tx.ref"></td>
@@ -1411,11 +1420,11 @@ body { overflow-x: hidden; max-width: 100vw; }
                   </tbody>
                   <tfoot><tr>
                     <td colspan="4">TOTALS</td>
-                    <td class="r" x-text="'K '+stmts[borrower]?.tot?.pri"></td>
-                    <td class="r" x-text="'K '+stmts[borrower]?.tot?.int"></td>
-                    <td class="r" x-text="'K '+stmts[borrower]?.tot?.pen"></td>
-                    <td class="r" x-text="'K '+stmts[borrower]?.tot?.paid"></td>
-                    <td class="r" style="color:#0e7490" x-text="stmts[borrower]?.balance"></td>
+                    <td class="r" x-text="'K '+currentStatement?.tot?.pri"></td>
+                    <td class="r" x-text="'K '+currentStatement?.tot?.int"></td>
+                    <td class="r" x-text="'K '+currentStatement?.tot?.pen"></td>
+                    <td class="r" x-text="'K '+currentStatement?.tot?.paid"></td>
+                    <td class="r" style="color:#0e7490" x-text="currentStatement?.balance"></td>
                   </tr></tfoot>
                 </table>
 
@@ -1521,135 +1530,29 @@ body { overflow-x: hidden; max-width: 100vw; }
 <script>
 function app(){
   return {
-    rt:'portfolio', period:'this_month', borrower:'GN', running:false, generated:false, toasts:[],
+    rt:'portfolio', period:'this_month', borrower:'', running:false, generated:false, toasts:[],
     thisMonthFull:'', thisMonthShort:'', lastMonthLabel:'', thisQLabel:'', lastQLabel:'',
     ytdLabel:'', lastYearLabel:'', todayShort:'', collectionPeriod:'', customFrom:'', customTo:'',
 
-    chartBars:[
-      {m:'Jul',d:64,c:52},{m:'Aug',d:80,c:68},{m:'Sep',d:73,c:60},
-      {m:'Oct',d:94,c:76},{m:'Nov',d:86,c:73},{m:'Dec',d:108,c:90},
-      {m:'Jan',d:100,c:86},{m:'Feb',d:88,c:82}
+    chartBars: [],
+    productRows: [],
+    officers: [],
+    receipts: [],
+    parCards: [
+      {lbl:'PAR 30 — Loans > 30 days overdue', val:'0%', clr:'var(--amber)', pct:0, sub:'No data'},
+      {lbl:'PAR 60 — Loans > 60 days overdue', val:'0%', clr:'var(--red)',   pct:0, sub:'No data'},
+      {lbl:'PAR 90 — Loans > 90 days overdue', val:'0%', clr:'#dc2626',      pct:0, sub:'No data'},
+      {lbl:'Default Rate — Write-off risk',    val:'0%', clr:'#7f1d1d',      pct:0, sub:'No data'},
     ],
-
-    productRows:[
-      {name:'Vehicle-Backed Loan',loans:'98',disbursed:'2,940,200',outstanding:'1,980,400',collected:'218,750',overdue:10,par:10.2,parColor:'var(--amber)',avgTerm:8},
-      {name:'Land-Backed Loan',   loans:'44',disbursed:'1,273,200',outstanding:'859,800', collected:'93,750', overdue:4, par:9.1, parColor:'var(--amber)',avgTerm:9},
-    ],
-
-    officers:[
-      {name:'F. Mwala',ini:'FM',c1:'#0891b2',c2:'#06b6d4',role:'Senior Loan Officer',loans:52,due:121440,col:116580,rec:48,rate:96,ov:4,ok:true},
-      {name:'C. Banda', ini:'CB',c1:'#7c3aed',c2:'#8b5cf6',role:'Loan Officer',       loans:48,due:110660,col:103020,rec:41,rate:93,ov:6,ok:false},
-      {name:'N. Tembo', ini:'NT',c1:'#059669',c2:'#10b981',role:'Loan Officer',        loans:42,due:99670, col:92900, rec:38,rate:93,ov:4,ok:false},
-    ],
-
-    receipts:[
-      {rcp:'RCP-00892',name:'Charity Mutale',  ini:'CM',c1:'#be185d',c2:'#ec4899',loan:'LN-20260018',type:'Full Instalment',meth:'Cash',          pri:7908,  int:1600, pen:0,   tot:9508,  date:'26 Feb 2026',off:'C. Banda'},
-      {rcp:'RCP-00891',name:'Bwalya Mwanza',   ini:'BM',c1:'#0891b2',c2:'#06b6d4',loan:'LN-20260032',type:'Full Instalment',meth:'Mobile Money',  pri:10400, int:1980, pen:0,   tot:12380, date:'25 Feb 2026',off:'F. Mwala'},
-      {rcp:'RCP-00890',name:'Noel Phiri',       ini:'NP',c1:'#059669',c2:'#10b981',loan:'LN-20260007',type:'Early Settlement',meth:'Bank Transfer',pri:32000, int:0,    pen:0,   tot:32000, date:'25 Feb 2026',off:'N. Tembo'},
-      {rcp:'RCP-00889',name:'Daniel Phiri',     ini:'DP',c1:'#d97706',c2:'#f59e0b',loan:'LN-20260041',type:'Full Instalment',meth:'Cash',          pri:5600,  int:1120, pen:0,   tot:6720,  date:'24 Feb 2026',off:'F. Mwala'},
-      {rcp:'RCP-00888',name:'Alice Mbewe',      ini:'AM',c1:'#7c3aed',c2:'#8b5cf6',loan:'LN-20260025',type:'Full Instalment',meth:'Cash',          pri:8200,  int:1560, pen:0,   tot:9760,  date:'24 Feb 2026',off:'C. Banda'},
-      {rcp:'RCP-00887',name:'Joseph Chanda',    ini:'JC',c1:'#b45309',c2:'#f59e0b',loan:'LN-20260027',type:'Partial',        meth:'Mobile Money',  pri:1800,  int:480,  pen:0,   tot:2280,  date:'23 Feb 2026',off:'F. Mwala'},
-      {rcp:'RCP-00886',name:'Florence Sakala',  ini:'FS',c1:'#166534',c2:'#22c55e',loan:'LN-20260013',type:'Full Instalment',meth:'Cash',          pri:9100,  int:1820, pen:0,   tot:10920, date:'22 Feb 2026',off:'N. Tembo'},
-      {rcp:'RCP-00885',name:'Peter Tembo',      ini:'PT',c1:'#1e3a5f',c2:'#0ea5e9',loan:'LN-20260036',type:'Full Instalment',meth:'Bank Transfer', pri:14200, int:2840, pen:0,   tot:17040, date:'21 Feb 2026',off:'C. Banda'},
-      {rcp:'RCP-00884',name:'Grace Nkonde',     ini:'GN',c1:'#dc2626',c2:'#ef4444',loan:'LN-20260009',type:'Partial',        meth:'Cash',          pri:2800,  int:700,  pen:0,   tot:3500,  date:'20 Feb 2026',off:'F. Mwala'},
-      {rcp:'RCP-00883',name:'Mary Chisanga',    ini:'MC',c1:'#9f1239',c2:'#f43f5e',loan:'LN-20260020',type:'Full Instalment',meth:'Mobile Money',  pri:6600,  int:1320, pen:0,   tot:7920,  date:'19 Feb 2026',off:'N. Tembo'},
-      {rcp:'RCP-00882',name:'John Mwamba',      ini:'JM',c1:'#0e7490',c2:'#06b6d4',loan:'LN-20260044',type:'Full Instalment',meth:'Cash',          pri:7400,  int:1480, pen:620, tot:9500,  date:'18 Feb 2026',off:'F. Mwala'},
-      {rcp:'RCP-00881',name:'Sarah Musonda',    ini:'SM',c1:'#4f46e5',c2:'#6366f1',loan:'LN-20260015',type:'Full Instalment',meth:'Cash',          pri:11800, int:2360, pen:0,   tot:14160, date:'17 Feb 2026',off:'C. Banda'},
-    ],
-
-    parCards:[
-      {lbl:'PAR 30 — Loans > 30 days overdue',val:'9.8%', clr:'var(--amber)',pct:49,sub:'K 278,300 of K 2.84M portfolio'},
-      {lbl:'PAR 60 — Loans > 60 days overdue',val:'6.1%', clr:'var(--red)',  pct:31,sub:'K 173,200 of K 2.84M portfolio'},
-      {lbl:'PAR 90 — Loans > 90 days overdue',val:'3.7%', clr:'#dc2626',    pct:19,sub:'K 105,100 of K 2.84M portfolio'},
-      {lbl:'Default Rate — Write-off risk',   val:'1.2%', clr:'#7f1d1d',    pct:6, sub:'K 34,080 provisioned for loss'},
-    ],
-
-    agingRows:[
-      {bkt:'Current (not yet due)',   loans:128,inst:0,  pri:0,      int:0,     pen:0,     tot:0,       pct:0,  clr:'var(--green)'},
-      {bkt:'1 – 7 days overdue',      loans:4,  inst:4,  pri:24600,  int:9840,  pen:0,     tot:34440,   pct:11, clr:'var(--amber)'},
-      {bkt:'8 – 30 days overdue',     loans:5,  inst:6,  pri:52400,  int:20960, pen:2170,  tot:75530,   pct:24, clr:'var(--amber)'},
-      {bkt:'31 – 60 days overdue',    loans:3,  inst:4,  pri:44200,  int:17680, pen:11680, tot:73560,   pct:23, clr:'var(--red)'},
-      {bkt:'61 – 90 days overdue',    loans:1,  inst:2,  pri:21480,  int:8592,  pen:9800,  tot:39872,   pct:13, clr:'#dc2626'},
-      {bkt:'Over 90 days overdue',    loans:1,  inst:3,  pri:42000,  int:14168, pen:25270, tot:89438,   pct:29, clr:'#7f1d1d'},
-    ],
-
-    stmts:{
-      GN:{
-        name:'Grace Nkonde',bNum:'BRW-00009',nrc:'345621/10/1',phone:'0977 412 903',
-        address:'Plot 8821, Matero, Lusaka',loanNum:'LN-20260009',
-        product:'Vehicle-Backed Loan',principal:'K 50,000',rate:'28% flat tiered rate',
-        term:'12 months',disbursed:'26 Aug 2025',maturity:'26 Aug 2026',
-        officer:'F. Mwala',period:'26 Aug 2025 – 26 Feb 2026',
-        totalRep:'K 58,560',totalPaid:'K 26,340',balance:'K 32,220',balClass:'red',
-        txs:[
-          {ref:'DISB-001',  date:'26 Aug 2025',desc:'Loan Disbursement',          pri:0,    int:0,    pen:0,  paid:0,    bal:58560, hl:true},
-          {ref:'RCP-00712', date:'26 Sep 2025',desc:'Instalment #1 — Full',       pri:3414, int:1466, pen:0,  paid:4880, bal:53680},
-          {ref:'PEN-001',   date:'27 Sep 2025',desc:'Penalty applied — Inst #1',  pri:0,    int:0,    pen:244,paid:0,    bal:53924},
-          {ref:'RCP-00756', date:'26 Oct 2025',desc:'Instalment #2 — Full',       pri:3494, int:1386, pen:0,  paid:4880, bal:49044},
-          {ref:'RCP-00801', date:'26 Nov 2025',desc:'Instalment #3 — Full',       pri:3574, int:1306, pen:0,  paid:4880, bal:44164},
-          {ref:'RCP-00844', date:'26 Dec 2025',desc:'Instalment #4 — Full',       pri:3656, int:1224, pen:0,  paid:4880, bal:39284},
-          {ref:'RCP-00860', date:'18 Jan 2026',desc:'Instalment #5 — Partial',    pri:2000, int:700,  pen:0,  paid:2700, bal:36584},
-          {ref:'PEN-002',   date:'27 Jan 2026',desc:'Penalty applied — Inst #5',  pri:0,    int:0,    pen:244,paid:0,    bal:36828},
-          {ref:'WVR-001',   date:'01 Feb 2026',desc:'Penalty Waiver — F. Mwala',  pri:0,    int:0,    pen:-244,paid:0,  bal:36584},
-          {ref:'RCP-00884', date:'20 Feb 2026',desc:'Partial payment',            pri:2800, int:700,  pen:0,  paid:3500, bal:33084},
-          {ref:'PEN-003',   date:'26 Feb 2026',desc:'Penalty applied — Inst #5-6',pri:0,    int:0,    pen:864,paid:0,   bal:33948},
-        ],
-        tot:{pri:'16,938',int:'6,782',pen:'864',paid:'25,720'},
-      },
-      BM:{
-        name:'Bwalya Mwanza',bNum:'BRW-00032',nrc:'501823/67/1',phone:'0965 334 201',
-        address:'Plot 2211, Kabulonga, Lusaka',loanNum:'LN-20260032',
-        product:'Vehicle-Backed Loan',principal:'K 75,000',rate:'26% flat tiered rate',
-        term:'12 months',disbursed:'01 Oct 2025',maturity:'01 Oct 2026',
-        officer:'F. Mwala',period:'01 Oct 2025 – 26 Feb 2026',
-        totalRep:'K 85,500',totalPaid:'K 61,900',balance:'K 23,600',balClass:'teal',
-        txs:[
-          {ref:'DISB-001',  date:'01 Oct 2025',desc:'Loan Disbursement',      pri:0,    int:0,   pen:0, paid:0,    bal:85500, hl:true},
-          {ref:'RCP-00780', date:'01 Nov 2025',desc:'Instalment #1',          pri:5490, int:1625,pen:0, paid:7115, bal:78385},
-          {ref:'RCP-00820', date:'01 Dec 2025',desc:'Instalment #2',          pri:5609, int:1506,pen:0, paid:7115, bal:71270},
-          {ref:'RCP-00851', date:'01 Jan 2026',desc:'Instalment #3',          pri:5731, int:1384,pen:0, paid:7115, bal:64155},
-          {ref:'RCP-00870', date:'01 Feb 2026',desc:'Instalment #4',          pri:5855, int:1260,pen:0, paid:7115, bal:57040},
-          {ref:'RCP-00891', date:'25 Feb 2026',desc:'Instalment #5 — Early',  pri:10040,int:0,   pen:0, paid:12380,bal:44660},
-        ],
-        tot:{pri:'32,725',int:'5,775',pen:'0',paid:'40,840'},
-      },
-      DP:{
-        name:'Daniel Phiri',bNum:'BRW-00041',nrc:'612934/45/1',phone:'0966 887 234',
-        address:'Plot 5512, Chelston, Lusaka',loanNum:'LN-20260041',
-        product:'Land-Backed Loan',principal:'K 40,000',rate:'30% flat tiered rate',
-        term:'10 months',disbursed:'15 Nov 2025',maturity:'15 Sep 2026',
-        officer:'C. Banda',period:'15 Nov 2025 – 26 Feb 2026',
-        totalRep:'K 46,000',totalPaid:'K 20,160',balance:'K 25,840',balClass:'teal',
-        txs:[
-          {ref:'DISB-001',  date:'15 Nov 2025',desc:'Loan Disbursement',   pri:0,   int:0,   pen:0, paid:0,    bal:46000, hl:true},
-          {ref:'RCP-00830', date:'15 Dec 2025',desc:'Instalment #1',       pri:3200,int:1000,pen:0, paid:4200, bal:41800},
-          {ref:'RCP-00863', date:'15 Jan 2026',desc:'Instalment #2',       pri:3280,int:920, pen:0, paid:4200, bal:37600},
-          {ref:'RCP-00889', date:'24 Feb 2026',desc:'Instalment #3',       pri:5600,int:1120,pen:0, paid:6720, bal:30880},
-        ],
-        tot:{pri:'12,080',int:'3,040',pen:'0',paid:'15,120'},
-      },
-      CM:{
-        name:'Charity Mutale',bNum:'BRW-00018',nrc:'498002/33/1',phone:'0977 556 891',
-        address:'Plot 991, Rhodespark, Lusaka',loanNum:'LN-20260018',
-        product:'Vehicle-Backed Loan',principal:'K 55,000',rate:'27% flat tiered rate',
-        term:'8 months',disbursed:'20 Sep 2025',maturity:'20 May 2026',
-        officer:'C. Banda',period:'20 Sep 2025 – 26 Feb 2026',
-        totalRep:'K 61,600',totalPaid:'K 47,540',balance:'K 14,060',balClass:'teal',
-        txs:[
-          {ref:'DISB-001',  date:'20 Sep 2025',desc:'Loan Disbursement',   pri:0,   int:0,   pen:0, paid:0,    bal:61600, hl:true},
-          {ref:'RCP-00720', date:'20 Oct 2025',desc:'Instalment #1',       pri:5694,int:1238,pen:0, paid:6932, bal:54668},
-          {ref:'RCP-00762', date:'20 Nov 2025',desc:'Instalment #2',       pri:5821,int:1111,pen:0, paid:6932, bal:47736},
-          {ref:'RCP-00808', date:'20 Dec 2025',desc:'Instalment #3',       pri:5952,int:980, pen:0, paid:6932, bal:40804},
-          {ref:'RCP-00849', date:'20 Jan 2026',desc:'Instalment #4',       pri:6084,int:848, pen:0, paid:6932, bal:33872},
-          {ref:'RCP-00876', date:'20 Feb 2026',desc:'Instalment #5',       pri:6220,int:712, pen:0, paid:6932, bal:26940},
-          {ref:'RCP-00892', date:'26 Feb 2026',desc:'Instalment #6',       pri:7908,int:1600,pen:0, paid:9508, bal:17432},
-        ],
-        tot:{pri:'37,679',int:'6,489',pen:'0',paid:'44,168'},
-      },
-    },
-
+    agingRows: [],
+    currentStatement: null,
     loanBook: [],
     loanBookTotals: { loan_count:0, total_principal:0, avg_rate:0, avg_term:0, total_outstanding:0, total_monthly_pmt:0 },
+    loanList: [],
+    portfolioKpis: { totalOutstanding:0, activeLoans:0, par30:0, par60:0, par90:0, par30Amt:0, par60Amt:0, par90Amt:0, disbursedPeriod:0, collectedPeriod:0, closedPeriod:0, overdueLoans:0, penaltiesOutstanding:0, avgLoanSize:0, collectionsRate:0 },
+    productTotals: { loans:0, disbursed:'0', outstanding:'0', collected:'0', overdue:0, par:0, avgTerm:0 },
+    agingTotals: { loans:0, inst:0, pri:0, int:0, pen:0, tot:0 },
+    collectionKpis: { totalCollected:0, receiptCount:0, collectionsRate:0, penaltiesCollected:0 },
 
     async init(){
       const now = new Date();
@@ -1671,8 +1574,7 @@ function app(){
       this.collectionPeriod = '01–'+now.getDate()+' '+S[mo]+' '+yr;
       this.customFrom = yr+'-'+pad(mo+1)+'-01';
       this.customTo = yr+'-'+pad(mo+1)+'-'+pad(now.getDate());
-      // Load real data from API in parallel
-      await Promise.all([this.loadLoanBook(), this.loadRecentReceipts()]);
+      await Promise.all([this.loadLoanBook(), this.loadRecentReceipts(), this.loadLoanList()]);
     },
 
     _rptAvatar(name) {
@@ -1769,17 +1671,204 @@ function app(){
       setTimeout(()=>{ window.print(); }, 400);
     },
 
-    runReport(){
-      this.running=true;
-      setTimeout(()=>{
-        this.running=false;
-        this.generated=true;
+    async runReport(){
+      this.running = true;
+      try {
+        if      (this.rt === 'portfolio')  await this.loadPortfolio();
+        else if (this.rt === 'collection') await this.loadCollections();
+        else if (this.rt === 'aging')      await this.loadAging();
+        else if (this.rt === 'statement')  await this.loadStatement();
+        else if (this.rt === 'loanbook')   await this.loadLoanBook();
+        this.generated = true;
         this.toast('success','✓','Report generated successfully');
         this.$nextTick(()=>{
-          const el=document.querySelector('.report-area');
+          const el = document.querySelector('.report-area');
           if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
         });
-      },900);
+      } catch(e) {
+        this.toast('error','✗','Failed to load report: ' + e.message);
+        console.error(e);
+      } finally {
+        this.running = false;
+      }
+    },
+
+    _periodDates() {
+      const now = new Date(), yr = now.getFullYear(), mo = now.getMonth();
+      const pad = n => String(n).padStart(2,'0');
+      const lastDay = d => new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+      if (this.period === 'last_month') {
+        const lm = new Date(yr, mo-1, 1);
+        return { dateFrom: `${lm.getFullYear()}-${pad(lm.getMonth()+1)}-01`, dateTo: `${lm.getFullYear()}-${pad(lm.getMonth()+1)}-${pad(lastDay(lm))}` };
+      } else if (this.period === 'ytd') {
+        return { dateFrom: `${yr}-01-01`, dateTo: `${yr}-${pad(mo+1)}-${pad(now.getDate())}` };
+      } else if (this.period === 'custom') {
+        return { dateFrom: this.customFrom, dateTo: this.customTo };
+      }
+      return { dateFrom: `${yr}-${pad(mo+1)}-01`, dateTo: `${yr}-${pad(mo+1)}-${pad(now.getDate())}` };
+    },
+
+    _fmtK(n) {
+      const v = parseFloat(n) || 0;
+      if (v >= 1000000) return 'K ' + (v/1000000).toFixed(2) + 'M';
+      if (v >= 1000)    return 'K ' + Math.round(v).toLocaleString();
+      return 'K ' + v.toFixed(0);
+    },
+
+    async loadLoanList() {
+      const token = localStorage.getItem('lms_token');
+      try {
+        const res = await fetch('/api/loans?per_page=200', { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+        if (!res.ok) return;
+        const d = await res.json();
+        this.loanList = (d.data || []).map(l => {
+          const b = l.borrower || {};
+          const name = ((b.first_name||'') + ' ' + (b.last_name||'')).trim();
+          return { id: l.id, label: name + ' — ' + l.loan_number };
+        });
+      } catch(e) { console.error('Loan list error:', e); }
+    },
+
+    async loadPortfolio() {
+      const token = localStorage.getItem('lms_token');
+      const { dateFrom, dateTo } = this._periodDates();
+      const res = await fetch(`/api/reports/portfolio?date_from=${dateFrom}&date_to=${dateTo}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('Portfolio API failed');
+      const d = await res.json();
+      const k = d.kpis || {}, port = Math.max(k.total_outstanding||0, 1);
+      this.portfolioKpis = {
+        totalOutstanding: k.total_outstanding || 0,
+        activeLoans:      k.total_active_loans || 0,
+        par30: k.par_30 || 0, par60: k.par_60 || 0, par90: k.par_90 || 0,
+        par30Amt: k.par30_amount || 0, par60Amt: k.par60_amount || 0, par90Amt: k.par90_amount || 0,
+        disbursedPeriod:     k.total_disbursed_period || 0,
+        collectedPeriod:     k.total_collected_period || 0,
+        closedPeriod:        k.loans_closed_in_period || 0,
+        overdueLoans:        k.overdue_loans || 0,
+        penaltiesOutstanding: k.penalties_outstanding || 0,
+        avgLoanSize:         k.avg_loan_size || 0,
+        collectionsRate:     port > 0 ? Math.round((k.total_collected_period||0)/port*1000)/10 : 0,
+      };
+      // Update PAR cards with real data
+      this.parCards = [
+        {lbl:'PAR 30 — Loans > 30 days overdue', val:k.par_30+'%',  clr:'var(--amber)', pct:Math.min(100,Math.round((k.par_30||0)*5)), sub:this._fmtK(k.par30_amount)+' of '+this._fmtK(k.total_outstanding)+' portfolio'},
+        {lbl:'PAR 60 — Loans > 60 days overdue', val:k.par_60+'%',  clr:'var(--red)',   pct:Math.min(100,Math.round((k.par_60||0)*5)), sub:this._fmtK(k.par60_amount)+' of '+this._fmtK(k.total_outstanding)+' portfolio'},
+        {lbl:'PAR 90 — Loans > 90 days overdue', val:k.par_90+'%',  clr:'#dc2626',      pct:Math.min(100,Math.round((k.par_90||0)*5)), sub:this._fmtK(k.par90_amount)+' of '+this._fmtK(k.total_outstanding)+' portfolio'},
+        {lbl:'Default Rate — Write-off risk',    val:(k.par_90||0)+'%', clr:'#7f1d1d',  pct:Math.min(100,Math.round((k.par_90||0)*3)), sub:'Based on PAR 90 threshold'},
+      ];
+      // Chart bars — scale to 140px max
+      const chart = d.monthly_chart || [];
+      const maxVal = Math.max(...chart.map(r => Math.max(parseFloat(r.disbursed)||0, parseFloat(r.collected)||0)), 1);
+      const S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      this.chartBars = chart.map(r => ({
+        m: S[parseInt((r.month||'2026-01').slice(5,7))-1] || r.month,
+        d: Math.round((parseFloat(r.disbursed)||0) / maxVal * 140),
+        c: Math.round((parseFloat(r.collected)||0) / maxVal * 140),
+      }));
+      // Product rows
+      let tL=0, tD=0, tO=0, tC=0, tOv=0;
+      this.productRows = (d.by_product || []).map(p => {
+        tL += parseInt(p.total_loans)||0; tD += parseFloat(p.total_disbursed)||0;
+        tO += parseFloat(p.outstanding)||0; tC += parseFloat(p.collected_mtd)||0;
+        tOv += parseInt(p.overdue_count)||0;
+        return { name:p.name, loans:p.total_loans||0,
+          disbursed: (parseFloat(p.total_disbursed)||0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+          outstanding: (parseFloat(p.outstanding)||0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+          collected: (parseFloat(p.collected_mtd)||0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+          overdue: p.overdue_count||0, par: k.par_30||0, parColor:'var(--amber)',
+          avgTerm: Math.round(parseFloat(p.avg_term)||0) };
+      });
+      this.productTotals = { loans:tL, disbursed:tD.toLocaleString('en-ZM',{maximumFractionDigits:0}), outstanding:tO.toLocaleString('en-ZM',{maximumFractionDigits:0}), collected:tC.toLocaleString('en-ZM',{maximumFractionDigits:0}), overdue:tOv, par:k.par_30||0, avgTerm:0 };
+    },
+
+    async loadCollections() {
+      const token = localStorage.getItem('lms_token');
+      const { dateFrom, dateTo } = this._periodDates();
+      const res = await fetch(`/api/reports/collections?date_from=${dateFrom}&date_to=${dateTo}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('Collections API failed');
+      const d = await res.json();
+      const tot = d.totals || {};
+      const penColl = (d.payments?.data||[]).reduce((s,p) => s + (parseFloat(p.towards_penalty)||0), 0);
+      this.collectionKpis = {
+        totalCollected: tot.total_collected || 0,
+        receiptCount:   tot.receipt_count || 0,
+        collectionsRate: 0,
+        penaltiesCollected: penColl,
+      };
+      this.officers = (d.officer_perf || []).map(o => {
+        const name = o.name || '';
+        const [c1,c2] = this._rptAvatar(name);
+        return { name, ini:this._rptInitials(name), c1, c2, role:'Loan Officer',
+          loans: o.unique_loans||0, due:0, col:parseFloat(o.total_collected)||0,
+          rec: o.receipt_count||0, rate:100, ov:0, ok:true };
+      });
+      const methIc = {cash:'💵',bank_transfer:'🏦',mobile_money:'📱',cheque:'📋'};
+      const typeMap = {instalment:'Full Instalment',partial:'Partial',early_settlement:'Early Settlement',penalty:'Penalty'};
+      this.receipts = (d.payments?.data||[]).map(p => {
+        const b = p.loan?.borrower||{};
+        const name = ((b.first_name||'')+' '+(b.last_name||'')).trim();
+        const [c1,c2] = this._rptAvatar(name||'?');
+        return { rcp:p.receipt_number||('RCP-'+String(p.id).padStart(5,'0')), name, ini:this._rptInitials(name||'?'), c1, c2,
+          loan:p.loan?.loan_number||'—', type:typeMap[p.payment_type]||p.payment_type,
+          meth:(p.payment_method||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),
+          methIc:methIc[p.payment_method]||'💰', pri:parseFloat(p.towards_principal)||0,
+          int:parseFloat(p.towards_interest)||0, pen:parseFloat(p.towards_penalty)||0,
+          tot:parseFloat(p.amount_received)||0, date:this._rptFmtDate(p.payment_date),
+          off:p.recorded_by?.name||'—' };
+      });
+    },
+
+    async loadAging() {
+      const token = localStorage.getItem('lms_token');
+      const res = await fetch('/api/reports/aging', { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('Aging API failed');
+      const d = await res.json();
+      const lblMap = {'1_7':'1 – 7 days overdue','8_30':'8 – 30 days overdue','31_60':'31 – 60 days overdue','61_90':'61 – 90 days overdue','90+':'Over 90 days overdue'};
+      const clrMap = {'1_7':'var(--amber)','8_30':'var(--amber)','31_60':'var(--red)','61_90':'#dc2626','90+':'#7f1d1d'};
+      const rows = d.aging || [];
+      const grandTot = rows.reduce((s,r) => s+(r.total||0),0)||1;
+      this.agingRows = [
+        {bkt:'Current (not yet due)',loans:0,inst:0,pri:0,int:0,pen:0,tot:0,pct:0,clr:'var(--green)'},
+        ...rows.map(r => ({bkt:lblMap[r.bucket]||r.bucket, loans:r.loans||0, inst:r.instalments||0,
+          pri:parseFloat(r.principal_due)||0, int:parseFloat(r.interest_due)||0, pen:parseFloat(r.penalties)||0,
+          tot:parseFloat(r.total)||0, pct:Math.round((r.total||0)/grandTot*100), clr:clrMap[r.bucket]||'var(--amber)'}))
+      ];
+      this.agingTotals = rows.reduce((a,r) => ({loans:a.loans+(r.loans||0), inst:a.inst+(r.instalments||0),
+        pri:a.pri+(parseFloat(r.principal_due)||0), int:a.int+(parseFloat(r.interest_due)||0),
+        pen:a.pen+(parseFloat(r.penalties)||0), tot:a.tot+(parseFloat(r.total)||0)}),
+        {loans:0,inst:0,pri:0,int:0,pen:0,tot:0});
+    },
+
+    async loadStatement() {
+      if (!this.borrower) { this.toast('gold','⚠️','Please select a loan'); throw new Error('No loan selected'); }
+      const token = localStorage.getItem('lms_token');
+      const res = await fetch(`/api/reports/statement/${this.borrower}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('Statement API failed');
+      const d = await res.json();
+      const fa = n => 'K '+(parseFloat(n)||0).toLocaleString('en-ZM',{minimumFractionDigits:0,maximumFractionDigits:2});
+      const txs = (d.transactions||[]);
+      this.currentStatement = {
+        stmtNum: d.statement_number,
+        name: ((d.borrower?.first_name||'')+' '+(d.borrower?.last_name||'')).trim(),
+        bNum: d.borrower?.borrower_number||'—', nrc:d.borrower?.nrc_number||'—',
+        phone:d.borrower?.phone_primary||'—', address:d.borrower?.residential_address||'—',
+        loanNum:d.loan?.loan_number||'—', product:d.product?.name||'—',
+        principal:fa(d.summary?.principal), rate:(d.loan?.interest_rate||0)+'% flat rate',
+        term:(d.loan?.term_months||0)+' months', disbursed:this._rptFmtDate(d.loan?.disbursed_at),
+        maturity:this._rptFmtDate(d.loan?.maturity_date), officer:d.officer?.name||'—',
+        period:this._rptFmtDate(d.loan?.disbursed_at)+' – '+this._rptFmtDate(d.loan?.maturity_date),
+        totalRep:fa(d.summary?.total_repayable), totalPaid:fa(d.summary?.total_paid),
+        balance:fa(d.summary?.balance_due), balClass:(d.summary?.balance_due||0)>0?'red':'teal',
+        txs: txs.map(tx => ({ref:tx.ref, date:this._rptFmtDate(tx.date), desc:tx.description,
+          pri:tx.principal, int:tx.interest, pen:tx.penalty, paid:tx.paid, bal:tx.balance,
+          hl:tx.description==='Loan Disbursement'})),
+        tot: {
+          pri: txs.reduce((s,t)=>s+(t.principal||0),0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+          int: txs.reduce((s,t)=>s+(t.interest||0),0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+          pen: txs.reduce((s,t)=>s+(t.penalty||0),0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+          paid:(parseFloat(d.summary?.total_paid)||0).toLocaleString('en-ZM',{maximumFractionDigits:0}),
+        },
+      };
     },
 
     toast(type,icon,msg){
