@@ -85,6 +85,8 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         $todayCollections    = (clone $todayPay)->sum('amount_received');
         $todayPayCount       = (clone $todayPay)->count();
         $totalPayCount       = \App\Models\Payment::count();
+        $pendingAmount       = \App\Models\Loan::whereIn('status', ['pending', 'pending_approval'])->sum('principal_amount');
+        $closedMonthAmount   = \App\Models\Loan::where('status', 'closed')->whereDate('updated_at', '>=', $monthStart)->sum('principal_amount');
 
         // Due today — unpaid instalments with due_date = today
         $dueTodayQ      = \App\Models\LoanSchedule::whereDate('due_date', today())
@@ -124,12 +126,43 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
                 'penalties_outstanding'  => $penaltiesOutstanding,
                 'month_collections'      => $monthCollections,
             ],
-            'portfolio_value' => $portfolioValue,
+            'portfolio_value'    => $portfolioValue,
+            'pending_amount'     => $pendingAmount,
+            'closed_month_amount'=> $closedMonthAmount,
             'due_today' => [
                 'count'    => $dueTodayCount,
                 'expected' => round($dueTodayExpected, 2),
             ],
         ]);
+    });
+
+    // ── Dashboard Collections Chart ───────────────────────────────────────────
+    Route::get('dashboard/collections', function (\Illuminate\Http\Request $request) {
+        $period = $request->get('period', 'week');
+
+        if ($period === 'month') {
+            $weeks = collect(range(3, 0))->map(fn ($i) => [
+                'start' => now()->startOfWeek()->subWeeks($i)->toDateString(),
+                'end'   => now()->startOfWeek()->subWeeks($i)->endOfWeek()->toDateString(),
+                'label' => 'Wk ' . (4 - $i),
+            ]);
+            $labels = $weeks->pluck('label')->toArray();
+            $exp = $weeks->map(fn ($w) => (float) \App\Models\LoanSchedule::whereBetween('due_date', [$w['start'], $w['end']])->sum('total_due'))->toArray();
+            $col = $weeks->map(fn ($w) => (float) \App\Models\Payment::whereBetween('payment_date', [$w['start'], $w['end']])->sum('amount_received'))->toArray();
+        } elseif ($period === 'quarter') {
+            $months = collect(range(2, 0))->map(fn ($i) => now()->subMonths($i)->startOfMonth());
+            $labels = $months->map(fn ($m) => $m->format('M'))->toArray();
+            $exp = $months->map(fn ($m) => (float) \App\Models\LoanSchedule::whereYear('due_date', $m->year)->whereMonth('due_date', $m->month)->sum('total_due'))->toArray();
+            $col = $months->map(fn ($m) => (float) \App\Models\Payment::whereYear('payment_date', $m->year)->whereMonth('payment_date', $m->month)->sum('amount_received'))->toArray();
+        } else {
+            // week — last 7 days
+            $days = collect(range(6, 0))->map(fn ($i) => now()->subDays($i));
+            $labels = $days->map(fn ($d) => $d->format('D'))->toArray();
+            $exp = $days->map(fn ($d) => (float) \App\Models\LoanSchedule::whereDate('due_date', $d)->sum('total_due'))->toArray();
+            $col = $days->map(fn ($d) => (float) \App\Models\Payment::whereDate('payment_date', $d)->sum('amount_received'))->toArray();
+        }
+
+        return response()->json(compact('labels', 'exp', 'col'));
     });
 
     // ── Dashboard / Global Stats (legacy — kept for backward compat) ──────────

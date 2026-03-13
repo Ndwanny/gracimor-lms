@@ -1380,11 +1380,11 @@ body { overflow-x: hidden; }
             <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-8"><span style="width:10px;height:10px;border-radius:2px;background:var(--teal);display:inline-block"></span><span class="text-sm text-slate">Active</span></div>
-                <span class="mono text-sm text-white">K 1.89M</span>
+                <span class="mono text-sm text-white" x-text="fmtK(stats.portfolio_value ?? 0)">K —</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-8"><span style="width:10px;height:10px;border-radius:2px;background:var(--amber);display:inline-block"></span><span class="text-sm text-slate">Pending Approval</span></div>
-                <span class="mono text-sm text-white">K 340K</span>
+                <span class="mono text-sm text-white" x-text="fmtK(stats.pending_amount ?? 0)">K —</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-8"><span style="width:10px;height:10px;border-radius:2px;background:var(--red);display:inline-block"></span><span class="text-sm text-slate">Overdue</span></div>
@@ -1392,7 +1392,7 @@ body { overflow-x: hidden; }
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-8"><span style="width:10px;height:10px;border-radius:2px;background:#6366F1;display:inline-block"></span><span class="text-sm text-slate">Closed (Month)</span></div>
-                <span class="mono text-sm text-white">K 145K</span>
+                <span class="mono text-sm text-white" x-text="fmtK(stats.closed_month_amount ?? 0)">K —</span>
               </div>
             </div>
           </div>
@@ -1702,8 +1702,8 @@ body { overflow-x: hidden; }
         const h = now.getHours();
         this.timeGreeting = h < 12 ? 'Good morning,' : h < 17 ? 'Good afternoon,' : 'Good evening,';
         try { const u = JSON.parse(localStorage.getItem('lms_user')||'{}'); if (u.name) this.greetName = u.name; } catch(e) {}
-        this.$nextTick(() => { this.initCharts(); });
         await Promise.all([this.loadStats(), this.loadWidgets()]);
+        this.$nextTick(() => { this.initCharts(); });
       },
 
       async loadStats() {
@@ -1797,20 +1797,22 @@ body { overflow-x: hidden; }
         return 'K ' + Number(n).toLocaleString();
       },
 
-      _chartData: {
-        week:    { labels:['Mon','Tue','Wed','Thu','Fri','Sat'], exp:[42000,38500,51000,29000,45000,38200], col:[39800,36000,48500,31200,41000,14800] },
-        month:   { labels:['Wk 1','Wk 2','Wk 3','Wk 4'],       exp:[180000,210000,195000,240000],         col:[168000,198000,184000,218000] },
-        quarter: { labels:['Jan','Feb','Mar'],                   exp:[720000,680000,740000],                col:[685000,632000,0] },
-      },
-
-      setChartPeriod(period) {
+      async setChartPeriod(period) {
         this.chartPeriod = period;
         if (!_collChart) return;
-        const d = this._chartData[period];
-        _collChart.data.labels = d.labels;
-        _collChart.data.datasets[0].data = d.exp;
-        _collChart.data.datasets[1].data = d.col;
-        _collChart.update();
+        const token = localStorage.getItem('lms_token');
+        try {
+          const res = await fetch(`/api/dashboard/collections?period=${period}`, {
+            headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            const d = await res.json();
+            _collChart.data.labels = d.labels;
+            _collChart.data.datasets[0].data = d.exp;
+            _collChart.data.datasets[1].data = d.col;
+            _collChart.update();
+          }
+        } catch(e) { console.error('Collections chart error:', e); }
       },
 
       initCharts() {
@@ -1830,19 +1832,19 @@ body { overflow-x: hidden; }
             y: { grid: { color: 'rgba(30,52,80,0.6)' }, ticks: { color: '#607D8B', font: { size: 11 }, callback: v => 'K '+(v/1000).toFixed(0)+'K' } }
           }
         };
-        const d = this._chartData.week;
         const ctx1 = document.getElementById('collectionChart').getContext('2d');
         _collChart = new Chart(ctx1, {
           type: 'bar',
           data: {
-            labels: d.labels,
+            labels: [],
             datasets: [
-              { label:'Expected', data:d.exp, backgroundColor:'rgba(30,52,80,0.8)',   borderRadius:6, borderSkipped:false },
-              { label:'Collected',data:d.col, backgroundColor:'rgba(11,143,172,0.85)',borderRadius:6, borderSkipped:false }
+              { label:'Expected', data:[], backgroundColor:'rgba(30,52,80,0.8)',   borderRadius:6, borderSkipped:false },
+              { label:'Collected',data:[], backgroundColor:'rgba(11,143,172,0.85)',borderRadius:6, borderSkipped:false }
             ]
           },
           options: chartOpts
         });
+        this.setChartPeriod('week');
 
         // ── Portfolio Donut ──
         const ctx2 = document.getElementById('portfolioChart').getContext('2d');
@@ -1851,7 +1853,12 @@ body { overflow-x: hidden; }
           data: {
             labels: ['Active', 'Pending', 'Overdue', 'Closed'],
             datasets: [{
-              data: [1890000, 340000, 24500, 145000],
+              data: [
+                parseFloat(this.stats?.portfolio_value) || 0,
+                parseFloat(this.stats?.pending_amount) || 0,
+                parseFloat(this.stats?.overdue?.total_arrears) || 0,
+                parseFloat(this.stats?.closed_month_amount) || 0,
+              ],
               backgroundColor: ['#0B8FAC', '#F5A623', '#EF4444', '#6366F1'],
               borderColor: '#16293D',
               borderWidth: 3,
