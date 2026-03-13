@@ -27,12 +27,14 @@ WORKDIR /app
 # Copy project
 COPY . .
 
+# Create required directories before composer runs package:discover
+RUN mkdir -p bootstrap/cache \
+        storage/framework/{sessions,views,cache} \
+        storage/logs \
+    && chmod -R 775 bootstrap/cache storage
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Storage must be writable
-RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs \
-    && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8080
 
