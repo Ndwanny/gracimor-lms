@@ -161,8 +161,14 @@ class ReportController extends Controller
                 SUM(payments.towards_penalty) as total_penalty,
                 (SELECT COUNT(*) FROM loans
                     WHERE loans.applied_by = users.id
-                    AND loans.status = "overdue") as overdue_count
+                    AND loans.status = "overdue") as overdue_count,
+                (SELECT COALESCE(SUM(ls.principal_portion + ls.interest_portion), 0)
+                    FROM loan_schedule ls
+                    JOIN loans l ON ls.loan_id = l.id
+                    WHERE l.applied_by = users.id
+                    AND ls.due_date BETWEEN ? AND ?) as due_amount
             ')
+            ->addBinding([$dateFrom, $dateTo], 'select')
             ->groupBy('users.id', 'users.name', 'users.role')
             ->orderByDesc('total_collected')
             ->get();

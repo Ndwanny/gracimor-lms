@@ -1794,21 +1794,27 @@ function app(){
       if (!res.ok) throw new Error('Collections API failed');
       const d = await res.json();
       const pt = d.payment_totals || {};
+      const totDue = (d.officer_perf||[]).reduce((s,o)=>s+(parseFloat(o.due_amount)||0),0);
+      const totCol = parseFloat(pt.total_collected)||0;
       this.collectionKpis = {
-        totalCollected:    parseFloat(pt.total_collected)||0,
+        totalCollected:    totCol,
         receiptCount:      parseInt(pt.receipt_count)||0,
-        collectionsRate:   0,
+        collectionsRate:   totDue > 0 ? Math.round(totCol / totDue * 100) : 0,
         penaltiesCollected:parseFloat(pt.total_penalty)||0,
       };
       this.officers = (d.officer_perf || []).map(o => {
         const name = o.name || '';
         const [c1,c2] = this._rptAvatar(name);
         const col = parseFloat(o.total_collected)||0;
+        const due = parseFloat(o.due_amount)||0;
+        const rate = due > 0 ? Math.round(col / due * 100) : (col > 0 ? 100 : 0);
         return { name, ini:this._rptInitials(name), c1, c2,
           role: (o.role||'loan_officer').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),
-          loans: parseInt(o.unique_loans)||0, col, pri:parseFloat(o.total_principal)||0,
+          loans: parseInt(o.unique_loans)||0, col, due, rate,
+          pri:parseFloat(o.total_principal)||0,
           int:parseFloat(o.total_interest)||0, pen:parseFloat(o.total_penalty)||0,
-          rec: parseInt(o.receipt_count)||0, ov: parseInt(o.overdue_count)||0, ok:true };
+          rec: parseInt(o.receipt_count)||0, ov: parseInt(o.overdue_count)||0,
+          ok: rate >= 90 };
       });
       // Officer tfoot totals computed from officers array
       this.collectionTotals = this.officers.reduce((a,o) => ({
