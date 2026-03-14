@@ -22,7 +22,11 @@ class BorrowerController extends Controller
     // ──────────────────────────────────────────────────────────────────────────
     public function index(Request $request): JsonResponse
     {
-        $query = Borrower::with(['assignedOfficer:id,name', 'loans' => fn ($q) => $q->active()])
+        $query = Borrower::with([
+                'assignedOfficer:id,name',
+                'loans' => fn ($q) => $q->active()->with(['loanBalance:id,loan_id,total_outstanding', 'collateralAsset:id,asset_type']),
+                'collateralAssets:id,borrower_id,asset_type',
+            ])
             ->withCount(['loans', 'loans as active_loans_count' => fn ($q) => $q->active()])
             ->latest();
 

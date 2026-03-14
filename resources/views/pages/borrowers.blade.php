@@ -1735,7 +1735,7 @@ body { overflow-x: hidden; }
                 loan: activeLoan?.loan_number || null,
                 owed: activeLoan?.loan_balance?.total_outstanding
                   ? 'K ' + Number(activeLoan.loan_balance.total_outstanding).toLocaleString() : null,
-                coll: null,
+                coll: activeLoan?.collateral_asset?.asset_type || (b.collateral_assets?.[0]?.asset_type) || null,
                 status,
                 reg: b.created_at
                   ? new Date(b.created_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})
