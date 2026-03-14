@@ -1793,7 +1793,7 @@ body { overflow-x: hidden; }
       fmtK(n) {
         if (!n || n === 0) return 'K 0';
         if (n >= 1000000) return 'K ' + (n / 1000000).toFixed(1) + 'M';
-        if (n >= 1000) return 'K ' + (n / 1000).toFixed(0) + 'K';
+        if (n >= 100000)  return 'K ' + (n / 1000).toFixed(1) + 'K';
         return 'K ' + Number(n).toLocaleString();
       },
 
