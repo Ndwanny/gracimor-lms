@@ -63,11 +63,12 @@ class ReportController extends Controller
             ? round($kpis['total_outstanding'] / $kpis['total_active_loans'], 2)
             : 0;
 
-        // Product breakdown
+        // Product breakdown — only disbursed loans
         $byProduct = DB::table('loans')
             ->join('loan_products', 'loans.loan_product_id', '=', 'loan_products.id')
             ->leftJoin('loan_balances', 'loans.id', '=', 'loan_balances.loan_id')
-            ->where('loans.status', '!=', 'rejected')
+            ->whereNotNull('loans.disbursed_at')
+            ->whereNotIn('loans.status', ['rejected', 'pending_approval', 'pending', 'draft'])
             ->selectRaw('
                 loan_products.id,
                 loan_products.name,
@@ -92,7 +93,8 @@ class ReportController extends Controller
             ->selectRaw('DATE_FORMAT(disbursed_at, "%Y-%m") as month, SUM(principal_amount) as disbursed')
             ->groupBy('month')
             ->orderBy('month')
-            ->get();
+            ->get()
+            ->keyBy('month');
 
         $monthlyPayments = DB::table('payments')
             ->whereBetween('payment_date', [now()->subMonths(12), now()])
@@ -102,10 +104,12 @@ class ReportController extends Controller
             ->get()
             ->keyBy('month');
 
-        $chartData = $monthly->map(fn ($row) => [
-            'month'      => $row->month,
-            'disbursed'  => (float) $row->disbursed,
-            'collected'  => (float) ($monthlyPayments[$row->month]->collected ?? 0),
+        // Merge all months from both disbursements and payments
+        $allMonths = $monthly->keys()->merge($monthlyPayments->keys())->unique()->sort()->values();
+        $chartData = $allMonths->map(fn ($m) => [
+            'month'      => $m,
+            'disbursed'  => (float) ($monthly[$m]->disbursed ?? 0),
+            'collected'  => (float) ($monthlyPayments[$m]->collected ?? 0),
         ]);
 
         return response()->json([

@@ -236,8 +236,12 @@ body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--white);min
   /* loan statement: already light-on-paper, just ensure page breaks */
   .stmt-paper { break-inside: avoid; }
 
+  /* shrink tables to fit page width */
+  .dtable, .atbl { font-size: 9pt !important; width: 100% !important; table-layout: fixed !important; }
+  .dtable th, .dtable td, .atbl th, .atbl td { padding: 4px 5px !important; word-break: break-word !important; }
+
   /* page margins */
-  @page { margin: 18mm 14mm; }
+  @page { margin: 18mm 14mm; size: A4 landscape; }
 }
 </style>
 
