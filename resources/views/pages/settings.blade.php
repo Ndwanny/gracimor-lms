@@ -863,6 +863,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       <button class="ttab" :class="tab==='audit'     && 'on'" @click="tab='audit'">Audit Log</button>
       <button class="ttab" :class="tab==='templates' && 'on'" @click="tab='templates'">SMS Templates</button>
       <button class="ttab" :class="tab==='agreement'  && 'on'" @click="tab='agreement'">Loan Agreement</button>
+      <button class="ttab" :class="tab==='import'     && 'on'" @click="tab='import'">Import / Export</button>
     </div>
     <div class="sep"></div>
     <div class="save-ind" x-show="unsaved"><div class="save-dot"></div><span>Unsaved changes</span></div>
@@ -1619,6 +1620,278 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       </div>
     </template>
 
+
+    <!-- ██ IMPORT / EXPORT ██ -->
+    <template x-if="tab==='import'">
+      <div class="fade">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <div style="font-family:'Spectral',serif;font-size:18px;font-weight:700">Import &amp; Export</div>
+            <div style="font-size:13px;color:var(--slate);margin-top:2px">Migrate data from your old system · Export current data for backup or analysis</div>
+          </div>
+        </div>
+
+        <!-- ── IMPORT SECTION ── -->
+        <div style="font-family:'Spectral',serif;font-size:15px;font-weight:700;color:var(--copper3);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+          <span>📥</span> Import Data
+        </div>
+        <div class="ibox" style="margin-bottom:20px">
+          <span>ℹ️</span>
+          <div>
+            <strong>Import order is mandatory:</strong>
+            Borrowers → Loans → Payments · Collateral · Guarantors.
+            Each row is validated and either imported or reported as an error — no partial rows are saved.
+            Duplicate borrowers (same NRC) are skipped automatically.
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:32px">
+
+          <!-- Borrowers card -->
+          <div class="panel">
+            <div class="ph">
+              <span style="font-size:18px">👥</span>
+              <div style="flex:1">
+                <div class="pt">1. Borrowers</div>
+                <div style="font-size:11px;color:var(--slate);margin-top:2px">Client profiles, employment &amp; next of kin</div>
+              </div>
+              <a :href="API+'/import/templates/borrowers'" style="font-size:11px;color:var(--teal);text-decoration:none;display:flex;align-items:center;gap:4px">⬇ Template</a>
+            </div>
+            <div class="pb">
+              <div class="fg">
+                <label class="fl">CSV File</label>
+                <input type="file" accept=".csv,.txt" class="fi" style="padding:8px 10px;cursor:pointer"
+                  @change="imp.borrowers.file = $event.target.files[0]">
+              </div>
+              <template x-if="imp.borrowers.result">
+                <div :class="imp.borrowers.result.errors.length ? 'wbox' : 'ibox'" style="margin-bottom:12px;flex-direction:column;gap:6px">
+                  <div style="font-weight:700" x-text="imp.borrowers.result.errors.length ? '⚠️ Import completed with errors' : '✓ Import successful'"></div>
+                  <div style="font-size:12px">
+                    <span style="color:var(--green)" x-text="imp.borrowers.result.imported+' imported'"></span> ·
+                    <span style="color:var(--slate)" x-text="imp.borrowers.result.skipped+' skipped'"></span> ·
+                    <span style="color:var(--red)" x-text="imp.borrowers.result.errors.length+' errors'"></span>
+                    of <span x-text="imp.borrowers.result.total+' rows'"></span>
+                  </div>
+                  <template x-if="imp.borrowers.result.errors.length">
+                    <div style="max-height:100px;overflow-y:auto;font-size:11px;color:var(--red);font-family:'IBM Plex Mono',monospace">
+                      <template x-for="e in imp.borrowers.result.errors" :key="e">
+                        <div x-text="e"></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <button class="tbtn copper" style="width:100%" :disabled="!imp.borrowers.file || imp.borrowers.loading"
+                @click="runImport('borrowers')">
+                <span x-text="imp.borrowers.loading ? '⏳ Importing…' : '📥 Import Borrowers'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Loans card -->
+          <div class="panel">
+            <div class="ph">
+              <span style="font-size:18px">📋</span>
+              <div style="flex:1">
+                <div class="pt">2. Loans</div>
+                <div style="font-size:11px;color:var(--slate);margin-top:2px">Loan records · auto-generates schedule &amp; balance for active loans</div>
+              </div>
+              <a :href="API+'/import/templates/loans'" style="font-size:11px;color:var(--teal);text-decoration:none;display:flex;align-items:center;gap:4px">⬇ Template</a>
+            </div>
+            <div class="pb">
+              <div class="fg">
+                <label class="fl">CSV File</label>
+                <input type="file" accept=".csv,.txt" class="fi" style="padding:8px 10px;cursor:pointer"
+                  @change="imp.loans.file = $event.target.files[0]">
+              </div>
+              <template x-if="imp.loans.result">
+                <div :class="imp.loans.result.errors.length ? 'wbox' : 'ibox'" style="margin-bottom:12px;flex-direction:column;gap:6px">
+                  <div style="font-weight:700" x-text="imp.loans.result.errors.length ? '⚠️ Import completed with errors' : '✓ Import successful'"></div>
+                  <div style="font-size:12px">
+                    <span style="color:var(--green)" x-text="imp.loans.result.imported+' imported'"></span> ·
+                    <span style="color:var(--slate)" x-text="imp.loans.result.skipped+' skipped'"></span> ·
+                    <span style="color:var(--red)" x-text="imp.loans.result.errors.length+' errors'"></span>
+                    of <span x-text="imp.loans.result.total+' rows'"></span>
+                  </div>
+                  <template x-if="imp.loans.result.errors.length">
+                    <div style="max-height:100px;overflow-y:auto;font-size:11px;color:var(--red);font-family:'IBM Plex Mono',monospace">
+                      <template x-for="e in imp.loans.result.errors" :key="e">
+                        <div x-text="e"></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <button class="tbtn copper" style="width:100%" :disabled="!imp.loans.file || imp.loans.loading"
+                @click="runImport('loans')">
+                <span x-text="imp.loans.loading ? '⏳ Importing…' : '📥 Import Loans'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Payments card -->
+          <div class="panel">
+            <div class="ph">
+              <span style="font-size:18px">💳</span>
+              <div style="flex:1">
+                <div class="pt">3. Payments</div>
+                <div style="font-size:11px;color:var(--slate);margin-top:2px">Historical payment records · updates loan balances</div>
+              </div>
+              <a :href="API+'/import/templates/payments'" style="font-size:11px;color:var(--teal);text-decoration:none;display:flex;align-items:center;gap:4px">⬇ Template</a>
+            </div>
+            <div class="pb">
+              <div class="fg">
+                <label class="fl">CSV File</label>
+                <input type="file" accept=".csv,.txt" class="fi" style="padding:8px 10px;cursor:pointer"
+                  @change="imp.payments.file = $event.target.files[0]">
+              </div>
+              <template x-if="imp.payments.result">
+                <div :class="imp.payments.result.errors.length ? 'wbox' : 'ibox'" style="margin-bottom:12px;flex-direction:column;gap:6px">
+                  <div style="font-weight:700" x-text="imp.payments.result.errors.length ? '⚠️ Import completed with errors' : '✓ Import successful'"></div>
+                  <div style="font-size:12px">
+                    <span style="color:var(--green)" x-text="imp.payments.result.imported+' imported'"></span> ·
+                    <span style="color:var(--slate)" x-text="imp.payments.result.skipped+' skipped'"></span> ·
+                    <span style="color:var(--red)" x-text="imp.payments.result.errors.length+' errors'"></span>
+                    of <span x-text="imp.payments.result.total+' rows'"></span>
+                  </div>
+                  <template x-if="imp.payments.result.errors.length">
+                    <div style="max-height:100px;overflow-y:auto;font-size:11px;color:var(--red);font-family:'IBM Plex Mono',monospace">
+                      <template x-for="e in imp.payments.result.errors" :key="e">
+                        <div x-text="e"></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <button class="tbtn copper" style="width:100%" :disabled="!imp.payments.file || imp.payments.loading"
+                @click="runImport('payments')">
+                <span x-text="imp.payments.loading ? '⏳ Importing…' : '📥 Import Payments'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Collateral card -->
+          <div class="panel">
+            <div class="ph">
+              <span style="font-size:18px">🚗</span>
+              <div style="flex:1">
+                <div class="pt">4. Collateral Assets</div>
+                <div style="font-size:11px;color:var(--slate);margin-top:2px">Vehicles &amp; land pledged as security</div>
+              </div>
+              <a :href="API+'/import/templates/collateral'" style="font-size:11px;color:var(--teal);text-decoration:none;display:flex;align-items:center;gap:4px">⬇ Template</a>
+            </div>
+            <div class="pb">
+              <div class="fg">
+                <label class="fl">CSV File</label>
+                <input type="file" accept=".csv,.txt" class="fi" style="padding:8px 10px;cursor:pointer"
+                  @change="imp.collateral.file = $event.target.files[0]">
+              </div>
+              <template x-if="imp.collateral.result">
+                <div :class="imp.collateral.result.errors.length ? 'wbox' : 'ibox'" style="margin-bottom:12px;flex-direction:column;gap:6px">
+                  <div style="font-weight:700" x-text="imp.collateral.result.errors.length ? '⚠️ Import completed with errors' : '✓ Import successful'"></div>
+                  <div style="font-size:12px">
+                    <span style="color:var(--green)" x-text="imp.collateral.result.imported+' imported'"></span> ·
+                    <span style="color:var(--slate)" x-text="imp.collateral.result.skipped+' skipped'"></span> ·
+                    <span style="color:var(--red)" x-text="imp.collateral.result.errors.length+' errors'"></span>
+                    of <span x-text="imp.collateral.result.total+' rows'"></span>
+                  </div>
+                  <template x-if="imp.collateral.result.errors.length">
+                    <div style="max-height:100px;overflow-y:auto;font-size:11px;color:var(--red);font-family:'IBM Plex Mono',monospace">
+                      <template x-for="e in imp.collateral.result.errors" :key="e">
+                        <div x-text="e"></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <button class="tbtn copper" style="width:100%" :disabled="!imp.collateral.file || imp.collateral.loading"
+                @click="runImport('collateral')">
+                <span x-text="imp.collateral.loading ? '⏳ Importing…' : '📥 Import Collateral'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Guarantors card -->
+          <div class="panel">
+            <div class="ph">
+              <span style="font-size:18px">🤝</span>
+              <div style="flex:1">
+                <div class="pt">5. Guarantors</div>
+                <div style="font-size:11px;color:var(--slate);margin-top:2px">Loan guarantor / co-signatory records</div>
+              </div>
+              <a :href="API+'/import/templates/guarantors'" style="font-size:11px;color:var(--teal);text-decoration:none;display:flex;align-items:center;gap:4px">⬇ Template</a>
+            </div>
+            <div class="pb">
+              <div class="fg">
+                <label class="fl">CSV File</label>
+                <input type="file" accept=".csv,.txt" class="fi" style="padding:8px 10px;cursor:pointer"
+                  @change="imp.guarantors.file = $event.target.files[0]">
+              </div>
+              <template x-if="imp.guarantors.result">
+                <div :class="imp.guarantors.result.errors.length ? 'wbox' : 'ibox'" style="margin-bottom:12px;flex-direction:column;gap:6px">
+                  <div style="font-weight:700" x-text="imp.guarantors.result.errors.length ? '⚠️ Import completed with errors' : '✓ Import successful'"></div>
+                  <div style="font-size:12px">
+                    <span style="color:var(--green)" x-text="imp.guarantors.result.imported+' imported'"></span> ·
+                    <span style="color:var(--slate)" x-text="imp.guarantors.result.skipped+' skipped'"></span> ·
+                    <span style="color:var(--red)" x-text="imp.guarantors.result.errors.length+' errors'"></span>
+                    of <span x-text="imp.guarantors.result.total+' rows'"></span>
+                  </div>
+                  <template x-if="imp.guarantors.result.errors.length">
+                    <div style="max-height:100px;overflow-y:auto;font-size:11px;color:var(--red);font-family:'IBM Plex Mono',monospace">
+                      <template x-for="e in imp.guarantors.result.errors" :key="e">
+                        <div x-text="e"></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <button class="tbtn copper" style="width:100%" :disabled="!imp.guarantors.file || imp.guarantors.loading"
+                @click="runImport('guarantors')">
+                <span x-text="imp.guarantors.loading ? '⏳ Importing…' : '📥 Import Guarantors'"></span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── EXPORT SECTION ── -->
+        <div style="font-family:'Spectral',serif;font-size:15px;font-weight:700;color:var(--copper3);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+          <span>📤</span> Export Data
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
+
+          <div class="panel" style="display:flex;align-items:center;gap:14px;padding:16px 20px">
+            <span style="font-size:22px">👥</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700">All Borrowers</div>
+              <div style="font-size:11px;color:var(--slate);margin-top:2px">Profiles &amp; contact info</div>
+            </div>
+            <button class="tbtn ghost" @click="runExport('borrowers')">⬇ CSV</button>
+          </div>
+
+          <div class="panel" style="display:flex;align-items:center;gap:14px;padding:16px 20px">
+            <span style="font-size:22px">📋</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700">All Loans</div>
+              <div style="font-size:11px;color:var(--slate);margin-top:2px">Loan book with terms &amp; status</div>
+            </div>
+            <button class="tbtn ghost" @click="runExport('loans')">⬇ CSV</button>
+          </div>
+
+          <div class="panel" style="display:flex;align-items:center;gap:14px;padding:16px 20px">
+            <span style="font-size:22px">💳</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700">All Payments</div>
+              <div style="font-size:11px;color:var(--slate);margin-top:2px">Full payment history</div>
+            </div>
+            <button class="tbtn ghost" @click="runExport('payments')">⬇ CSV</button>
+          </div>
+
+        </div>
+
+      </div>
+    </template>
+
   </div><!-- /content -->
 </main>
 </div>
@@ -1687,6 +1960,19 @@ function app(){
     selTpl:null,
     toasts:[],
     auditFrom:'', auditTo:'', dateExampleLabel:'DD MMM YYYY',
+
+    /* ── API base + token (for export links and import requests) ── */
+    API: '/api',
+    token: localStorage.getItem('lms_token') || '',
+
+    /* ── Import state — one entry per entity type ── */
+    imp: {
+      borrowers:  { file:null, loading:false, result:null },
+      loans:      { file:null, loading:false, result:null },
+      payments:   { file:null, loading:false, result:null },
+      collateral: { file:null, loading:false, result:null },
+      guarantors: { file:null, loading:false, result:null },
+    },
 
     /* ── Rate tiers (system-wide, fixed by duration) ── */
     rateTiers: { 1:10, 2:18, 3:28, 4:38 },
@@ -1996,6 +2282,61 @@ function app(){
         printDiv.style.display = 'none';
         document.body.style.overflow = '';
       }, 200);
+    },
+
+    async runExport(type){
+      this.toast('info','⏳','Preparing '+type+' export…');
+      try {
+        const r = await fetch(this.API + '/export/' + type, {
+          headers: { 'Authorization': 'Bearer ' + this.token, 'Accept': 'text/csv' },
+        });
+        if (!r.ok) { this.toast('err','✕','Export failed: ' + r.status); return; }
+        const blob = await r.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = type + '_export_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.toast('ok','✓', type+' exported successfully');
+      } catch(e) {
+        this.toast('err','✕','Export error: ' + e.message);
+      }
+    },
+
+    async runImport(type){
+      const s = this.imp[type];
+      if (!s.file) return;
+      s.loading = true;
+      s.result  = null;
+      const fd  = new FormData();
+      fd.append('file', s.file);
+      try {
+        const r = await fetch(this.API + '/import/' + type, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + this.token, 'Accept': 'application/json' },
+          body: fd,
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          s.result = { imported:0, skipped:0, errors:[data.message || 'Server error ' + r.status], total:0 };
+          this.toast('err','✕', 'Import failed: ' + (data.message || r.status));
+        } else {
+          s.result = data;
+          if (data.errors && data.errors.length) {
+            this.toast('warn','⚠️', type+' import: '+data.imported+' imported, '+data.errors.length+' errors');
+          } else {
+            this.toast('ok','✓', type+' import: '+data.imported+' records imported successfully');
+          }
+        }
+      } catch(e) {
+        s.result = { imported:0, skipped:0, errors:['Network error — ' + e.message], total:0 };
+        this.toast('err','✕','Network error during import');
+      } finally {
+        s.loading = false;
+      }
     },
 
     saveAll(){

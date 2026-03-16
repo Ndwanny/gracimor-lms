@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BorrowerController;
+use App\Http\Controllers\Api\ImportController;
 use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\CollateralController;
 use App\Http\Controllers\Api\GuarantorController;
@@ -38,6 +39,10 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('login',  [AuthController::class, 'login']);
 });
+
+// CSV import templates — public so browser <a href> links work without Bearer token
+// Templates contain no sensitive data; they are blank example files only
+Route::get('import/templates/{type}', [ImportController::class, 'downloadTemplate'])->name('import.template');
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -343,6 +348,24 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         Route::put('{template}',                     [SmsTemplateController::class, 'update'])->name('update')
              ->middleware('role:superadmin,ceo,manager');
         Route::post('{template}/preview',            [SmsTemplateController::class, 'preview'])->name('preview');
+    });
+
+
+    // ── Import / Export ───────────────────────────────────────────────────
+    // Imports restricted to manager+ (sensitive data operation)
+    Route::middleware('role:superadmin,ceo,manager')->prefix('import')->name('import.')->group(function () {
+        Route::post('borrowers',  [ImportController::class, 'importBorrowers'])->name('borrowers');
+        Route::post('loans',      [ImportController::class, 'importLoans'])->name('loans');
+        Route::post('payments',   [ImportController::class, 'importPayments'])->name('payments');
+        Route::post('collateral', [ImportController::class, 'importCollateral'])->name('collateral');
+        Route::post('guarantors', [ImportController::class, 'importGuarantors'])->name('guarantors');
+    });
+
+    // Exports — manager+
+    Route::middleware('role:superadmin,ceo,manager')->prefix('export')->name('export.')->group(function () {
+        Route::get('borrowers', [ImportController::class, 'exportBorrowers'])->name('borrowers');
+        Route::get('loans',     [ImportController::class, 'exportLoans'])->name('loans');
+        Route::get('payments',  [ImportController::class, 'exportPayments'])->name('payments');
     });
 
 
