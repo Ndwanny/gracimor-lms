@@ -1559,7 +1559,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
                           <!-- Lender / Officer -->
                           <div class="agr-sig-block">
                             <div class="agr-sig-role">FOR THE LENDER — GRACIMOR LOANS</div>
-                            <div class="agr-sigpad-wrap no-print" x-show="!officerSigned" style="height:130px">
+                            <div class="agr-sigpad-wrap no-print" x-show="!officerSigned" style="height:155px">
                               <div class="agr-sigpad-hint">✍ Sign here using finger or mouse</div>
                               <canvas id="officer-sig-canvas" class="agr-sigpad-canvas" style="height:85px"></canvas>
                               <div class="agr-sigpad-btns">
@@ -1589,7 +1589,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
                           <!-- Borrower -->
                           <div class="agr-sig-block">
                             <div class="agr-sig-role">FOR THE BORROWER</div>
-                            <div class="agr-sigpad-wrap no-print" x-show="!borrowerSigned" style="height:130px">
+                            <div class="agr-sigpad-wrap no-print" x-show="!borrowerSigned" style="height:155px">
                               <div class="agr-sigpad-hint">✍ Sign here using finger or mouse</div>
                               <canvas id="borrower-sig-canvas" class="agr-sigpad-canvas" style="height:85px"></canvas>
                               <div class="agr-sigpad-btns">
