@@ -1904,7 +1904,10 @@ body { overflow-x: hidden; }
           } else {
             this.showToast('✓ Document uploaded.');
             this.showUploadModal = false;
-            await this.open({ id: this.selDetail.id });
+            const r2 = await fetch(`/api/borrowers/${this.selDetail.id}`, {
+              headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+            });
+            if (r2.ok) this.selDetail = await r2.json();
           }
         } catch { this.showToast('✗ Network error.'); }
         this.uploadSaving = false;
