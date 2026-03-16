@@ -15,14 +15,14 @@ class LoanReminderMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public string $queue = 'notifications';
-
     public function __construct(
         public readonly Loan          $loan,
         public readonly LoanSchedule  $schedule,
         public readonly string        $triggerKey,
         public readonly array         $context,
-    ) {}
+    ) {
+        $this->onQueue('notifications');
+    }
 
     public function envelope(): Envelope
     {
