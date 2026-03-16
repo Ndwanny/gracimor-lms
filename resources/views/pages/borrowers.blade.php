@@ -1120,9 +1120,9 @@ body { overflow-x: hidden; }
                               <div class="xs ts" x-text="'K ' + Number(loan.loan_balance?.total_outstanding||0).toLocaleString() + ' remaining'"></div>
                               <div class="flex aic g8">
                                 <template x-if="loan.status==='active'||loan.status==='overdue'">
-                                  <button class="btn-g btn-sm" :disabled="loan._reminding"
+                                  <button class="btn-g btn-sm" :disabled="remindingLoanId===loan.id"
                                     @click="sendLoanReminder(loan)"
-                                    x-text="loan._reminding ? 'Sending…' : '✉ Remind'">
+                                    x-text="remindingLoanId===loan.id ? 'Sending…' : '✉ Remind'">
                                   </button>
                                 </template>
                                 <button class="btn-g btn-sm" @click="window.location.href='/loans'">View Schedule →</button>
@@ -1652,7 +1652,7 @@ body { overflow-x: hidden; }
       sel: null,
       toast: false, toastMsg: '',
       rows: [], page: 1, perPage: 8, loading: false,
-      selLoading: false, selDetail: null,
+      selLoading: false, selDetail: null, remindingLoanId: null,
       stats: { borrowers: { total:'-', with_active:'-', with_overdue:'-', no_active_loan:'-' } },
       showEdit: false, editSaving: false,
       editData: {},
@@ -1950,7 +1950,7 @@ body { overflow-x: hidden; }
       },
 
       async sendLoanReminder(loan) {
-        loan._reminding = true;
+        this.remindingLoanId = loan.id;
         const token = localStorage.getItem('lms_token');
         try {
           const res = await fetch(`/api/loans/${loan.id}/send-reminder`, {
@@ -1960,7 +1960,7 @@ body { overflow-x: hidden; }
           const data = await res.json();
           this.showToast(res.ok ? '✓ ' + data.message : '✗ ' + (data.message || 'Failed to send reminder.'));
         } catch { this.showToast('✗ Network error.'); }
-        loan._reminding = false;
+        this.remindingLoanId = null;
       },
 
       async downloadDoc(borrowerId, docId, fileName) {
