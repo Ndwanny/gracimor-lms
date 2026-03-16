@@ -1780,6 +1780,34 @@ body { overflow-x: hidden; }
         this.selLoading = false;
       },
 
+      async refreshDetail() {
+        const token = localStorage.getItem('lms_token');
+        const r = await fetch(`/api/borrowers/${this.selDetail.id}`, {
+          headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+        });
+        if (!r.ok) return;
+        const b = await r.json();
+        this.selDetail = b;
+        // Keep sel display fields in sync so the left panel never goes blank
+        const palette = [
+          ['#0B8FAC','#076E86'],['#6366F1','#4338CA'],['#10B981','#059669'],
+          ['#EF4444','#B91C1C'],['#F59E0B','#D97706'],['#EC4899','#BE185D'],
+          ['#64748B','#475569'],['#A78BFA','#7C3AED'],['#34D399','#059669'],['#F472B6','#DB2777'],
+        ];
+        const clr = palette[b.id % palette.length];
+        const parts = [b.first_name, b.last_name].filter(Boolean);
+        this.sel.name    = parts.join(' ');
+        this.sel.ini     = parts.map(p => p[0]).join('').toUpperCase();
+        this.sel.c1      = clr[0]; this.sel.c2 = clr[1];
+        this.sel.nrc     = b.nrc_number || '';
+        this.sel.phone   = b.phone_primary || '';
+        this.sel.email   = b.email || '';
+        this.sel.emp     = b.employment_status || '—';
+        this.sel.income  = b.monthly_income ? 'K ' + Number(b.monthly_income).toLocaleString() : '—';
+        this.sel.addr    = b.residential_address || '—';
+        this.sel.officer = b.assigned_officer?.name || '—';
+      },
+
       openAddColl() {
         this.addColl = { asset_type:'vehicle', vReg:'',vMake:'',vModel:'',vYear:'',vColor:'',vEngine:'',vChassis:'',vInsExpiry:'',vInsurer:'',vValue:'',lPlot:'',lDeed:'',lAddress:'',lSize:'',lValue:'',lType:'Bare Land' };
         this.showAddColl = true;
@@ -1827,7 +1855,7 @@ body { overflow-x: hidden; }
           } else {
             this.showToast('✓ Collateral asset added.');
             this.showAddColl = false;
-            await this.open({ id: this.selDetail.id });
+            await this.refreshDetail();
           }
         } catch { this.showToast('✗ Network error.'); }
         this.addCollSaving = false;
@@ -1872,7 +1900,7 @@ body { overflow-x: hidden; }
           } else {
             this.showToast('✓ Borrower details updated.');
             this.showEdit = false;
-            await this.open({ id: this.selDetail.id });
+            await this.refreshDetail();
           }
         } catch { this.showToast('✗ Network error.'); }
         this.editSaving = false;
