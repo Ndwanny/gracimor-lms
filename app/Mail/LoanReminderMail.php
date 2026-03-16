@@ -27,7 +27,6 @@ class LoanReminderMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            to:      $this->loan->borrower->email,
             subject: $this->resolveSubject(),
         );
     }
