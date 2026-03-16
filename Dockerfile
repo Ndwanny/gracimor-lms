@@ -35,6 +35,10 @@ RUN mkdir -p bootstrap/cache \
     && chmod -R 775 bootstrap/cache storage \
     && ln -sf /app/storage/app/public /app/public/storage
 
+# PHP upload / memory limits
+RUN echo "upload_max_filesize=20M\npost_max_size=25M\nmemory_limit=256M" \
+    > /usr/local/etc/php/conf.d/uploads.ini
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
