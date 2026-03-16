@@ -430,7 +430,7 @@ class LoanController extends Controller
         $channels = [];
 
         // Email — always attempt
-        $emailResult = $reminderService->sendEmail($loan, $schedule, $triggerKey);
+        $emailResult = $reminderService->sendEmail($loan, $schedule, $triggerKey, false);
         if ($emailResult) {
             $channels[] = $emailResult;
         }

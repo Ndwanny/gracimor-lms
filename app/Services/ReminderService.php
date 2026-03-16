@@ -33,6 +33,7 @@ class ReminderService
         Loan         $loan,
         LoanSchedule $schedule,
         string       $triggerKey,
+        bool         $async = true,
     ): ?array {
         $email = $loan->borrower?->email;
 
@@ -41,12 +42,17 @@ class ReminderService
             return null;
         }
 
-        $context = $this->buildContext($loan, $schedule);
+        $context  = $this->buildContext($loan, $schedule);
+        $mailable = new LoanReminderMail($loan, $schedule, $triggerKey, $context);
 
         try {
-            Mail::to($email)->queue(new LoanReminderMail($loan, $schedule, $triggerKey, $context));
+            if ($async) {
+                Mail::to($email)->queue($mailable);
+            } else {
+                Mail::to($email)->send($mailable);
+            }
 
-            Log::info("[ReminderService] Email queued for {$triggerKey} — {$email} — loan {$loan->loan_number}");
+            Log::info("[ReminderService] Email " . ($async ? 'queued' : 'sent') . " for {$triggerKey} — {$email} — loan {$loan->loan_number}");
 
             return [
                 'channel'      => 'email',
