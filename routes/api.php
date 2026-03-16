@@ -230,6 +230,9 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         Route::post('{loan}/write-off',          [LoanController::class, 'writeOff'])->name('write-off')
              ->middleware('role:superadmin,ceo,manager');
 
+        // Manual reminder
+        Route::post('{loan}/send-reminder',      [LoanController::class, 'sendReminder'])->name('send-reminder');
+
         // Agreement e-signatures
         Route::post('{loan}/signatures',         [LoanController::class, 'saveSignature'])->name('signatures.save');
         Route::delete('{loan}/signatures/{role}',[LoanController::class, 'clearSignature'])->name('signatures.clear');

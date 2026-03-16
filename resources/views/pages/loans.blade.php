@@ -951,9 +951,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
             <template x-if="sel?.status==='approved'">
               <button class="btn-green" @click="modal='disburse'">⬆ Disburse Funds</button>
             </template>
-            <template x-if="sel?.status==='active'">
+            <template x-if="sel?.status==='active'||sel?.status==='overdue'">
               <div class="flex aic g8">
-                <button class="btn-g btn-sm" @click="openSettle()">Early Settlement</button>
+                <button class="btn-g btn-sm" :disabled="reminding"
+                  @click="sendReminder()"
+                  x-text="reminding ? 'Sending…' : '✉ Send Reminder'">
+                </button>
+                <template x-if="sel?.status==='active'">
+                  <button class="btn-g btn-sm" @click="openSettle()">Early Settlement</button>
+                </template>
                 <button class="btn-p btn-sm" @click="window.location.href='/payments'">+ Record Payment</button>
               </div>
             </template>
@@ -2322,7 +2328,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     return {
       view: 'list', ptab: 'schedule', step: 1,
       q: '', fStatus: '', fColl: '',
-      sel: null, modal: null,
+      sel: null, modal: null, reminding: false,
       approveAmt: '', approveNotes: '',
       disburseDate: '', disburseMethod: 'Cash', disburseRef: '', disburseNotes: '',
       rejectReason: '', rejectNotes: '',
@@ -2703,6 +2709,22 @@ html, body { overflow-x: hidden; max-width: 100%; }
           await this.loadLoans();
           if (this.sel) { this.sel.status = 'active'; }
         } catch { this.showToast('Network error.', 'var(--red)'); }
+      },
+
+      async sendReminder() {
+        if (!this.sel || this.reminding) return;
+        this.reminding = true;
+        const token = localStorage.getItem('lms_token');
+        try {
+          const res = await fetch(`/api/loans/${this.sel.id}/send-reminder`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+          });
+          const data = await res.json();
+          this.showToast(res.ok ? '✓ ' + data.message : '✗ ' + (data.message || 'Failed to send reminder.'),
+            res.ok ? 'var(--green)' : 'var(--red)');
+        } catch { this.showToast('✗ Network error.', 'var(--red)'); }
+        this.reminding = false;
       },
 
       openSettle() {

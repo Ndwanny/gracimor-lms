@@ -1118,7 +1118,15 @@ body { overflow-x: hidden; }
                             </div>
                             <div class="flex jb aic mt8">
                               <div class="xs ts" x-text="'K ' + Number(loan.loan_balance?.total_outstanding||0).toLocaleString() + ' remaining'"></div>
-                              <button class="btn-g btn-sm" @click="window.location.href='/loans'">View Schedule →</button>
+                              <div class="flex aic g8">
+                                <template x-if="loan.status==='active'||loan.status==='overdue'">
+                                  <button class="btn-g btn-sm" :disabled="loan._reminding"
+                                    @click="sendLoanReminder(loan)"
+                                    x-text="loan._reminding ? 'Sending…' : '✉ Remind'">
+                                  </button>
+                                </template>
+                                <button class="btn-g btn-sm" @click="window.location.href='/loans'">View Schedule →</button>
+                              </div>
                             </div>
                           </div>
                         </template>
@@ -1939,6 +1947,20 @@ body { overflow-x: hidden; }
           }
         } catch { this.showToast('✗ Network error.'); }
         this.uploadSaving = false;
+      },
+
+      async sendLoanReminder(loan) {
+        loan._reminding = true;
+        const token = localStorage.getItem('lms_token');
+        try {
+          const res = await fetch(`/api/loans/${loan.id}/send-reminder`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+          });
+          const data = await res.json();
+          this.showToast(res.ok ? '✓ ' + data.message : '✗ ' + (data.message || 'Failed to send reminder.'));
+        } catch { this.showToast('✗ Network error.'); }
+        loan._reminding = false;
       },
 
       async downloadDoc(borrowerId, docId, fileName) {

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
+use App\Models\LoanSchedule;
 use App\Services\LoanService;
 use App\Services\LoanCalculatorService;
 use App\Services\PaymentService;
+use App\Services\ReminderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -378,5 +380,87 @@ class LoanController extends Controller
         ]);
 
         return response()->json(['message' => ucfirst($role) . ' signature cleared.']);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // POST /api/loans/{loan}/send-reminder
+    // Manually send an email (+ SMS if configured) reminder to the borrower
+    // for their next due or most recent overdue instalment.
+    // ──────────────────────────────────────────────────────────────────────────
+    public function sendReminder(Loan $loan, ReminderService $reminderService): JsonResponse
+    {
+        abort_unless(
+            in_array($loan->status, ['active', 'overdue']),
+            422,
+            'Reminders can only be sent for active or overdue loans.'
+        );
+
+        $loan->load([
+            'borrower:id,first_name,last_name,phone_primary,email',
+            'loanProduct:id,name,penalty_rate_percent',
+            'loanBalance',
+            'penalties',
+            'appliedBy:id,name,phone',
+        ]);
+
+        // Find the most relevant instalment: first overdue, otherwise next pending
+        $schedule = LoanSchedule::where('loan_id', $loan->id)
+            ->whereIn('status', ['pending', 'partial'])
+            ->orderBy('due_date', 'asc')
+            ->first();
+
+        if (!$schedule) {
+            return response()->json(['message' => 'No upcoming or overdue instalment found for this loan.'], 422);
+        }
+
+        $daysOverdue = now()->diffInDays(\Carbon\Carbon::parse($schedule->due_date), false);
+        $isOverdue   = $daysOverdue < 0;
+
+        $triggerKey = match (true) {
+            $isOverdue && abs($daysOverdue) >= 30 => 'overdue_30_days',
+            $isOverdue && abs($daysOverdue) >= 14 => 'overdue_14_days',
+            $isOverdue && abs($daysOverdue) >= 7  => 'overdue_7_days',
+            $isOverdue                             => 'overdue_1_day',
+            $daysOverdue === 0                     => 'due_today',
+            $daysOverdue <= 1                      => 'pre_due_1_day',
+            $daysOverdue <= 3                      => 'pre_due_3_days',
+            default                                => 'pre_due_7_days',
+        };
+
+        $channels = [];
+
+        // Email — always attempt
+        $emailResult = $reminderService->sendEmail($loan, $schedule, $triggerKey);
+        if ($emailResult) {
+            $channels[] = $emailResult;
+        }
+
+        // SMS — attempt for overdue loans if phone exists
+        if ($isOverdue) {
+            $smsResult = $reminderService->sendSms($loan, $schedule, $triggerKey);
+            if ($smsResult) {
+                $channels[] = $smsResult;
+            }
+        }
+
+        if (empty($channels)) {
+            return response()->json([
+                'message' => 'No reminder sent — borrower has no email address or phone number on file.',
+            ], 422);
+        }
+
+        $sent    = collect($channels)->where('status', 'sent')->count();
+        $failed  = collect($channels)->where('status', 'failed')->count();
+        $summary = collect($channels)->map(fn ($c) => strtoupper($c['channel']) . ': ' . $c['status'])->join(', ');
+
+        return response()->json([
+            'message'    => $sent > 0
+                ? "Reminder sent via {$summary}."
+                : "Reminder failed — {$summary}.",
+            'trigger'    => $triggerKey,
+            'channels'   => $channels,
+            'sent'       => $sent,
+            'failed'     => $failed,
+        ], $sent > 0 ? 200 : 422);
     }
 }
