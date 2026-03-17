@@ -94,11 +94,18 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         $closedMonthAmount   = \App\Models\Loan::where('status', 'closed')->whereDate('updated_at', '>=', $monthStart)->sum('principal_amount');
 
         // Due today — unpaid instalments with due_date = today
-        $dueTodayQ      = \App\Models\LoanSchedule::whereDate('due_date', today())
+        $dueTodayQ        = \App\Models\LoanSchedule::whereDate('due_date', today())
             ->whereNotIn('status', ['paid'])
-            ->whereHas('loan', fn ($q) => $q->active());
+            ->whereHas('loan', fn ($q) => $q->whereIn('status', ['active', 'overdue']));
         $dueTodayCount    = (clone $dueTodayQ)->count();
         $dueTodayExpected = (clone $dueTodayQ)->sum('total_due');
+
+        // Past due — unpaid instalments whose due_date has already passed
+        $pastDueQ        = \App\Models\LoanSchedule::whereDate('due_date', '<', today())
+            ->whereNotIn('status', ['paid'])
+            ->whereHas('loan', fn ($q) => $q->whereIn('status', ['active', 'overdue']));
+        $pastDueCount    = (clone $pastDueQ)->count();
+        $pastDueExpected = (clone $pastDueQ)->sum('total_due');
 
         return response()->json([
             'borrowers' => [
@@ -138,7 +145,32 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
                 'count'    => $dueTodayCount,
                 'expected' => round($dueTodayExpected, 2),
             ],
+            'past_due' => [
+                'count'    => $pastDueCount,
+                'expected' => round($pastDueExpected, 2),
+            ],
         ]);
+    });
+
+    // ── Dashboard Due Instalments (today + past-due unpaid) ──────────────────
+    Route::get('dashboard/due-instalments', function () {
+        $rows = \App\Models\LoanSchedule::whereDate('due_date', '<=', today())
+            ->whereNotIn('status', ['paid'])
+            ->whereHas('loan', fn ($q) => $q->whereIn('status', ['active', 'overdue']))
+            ->with(['loan:id,loan_number,monthly_instalment', 'loan.borrower:id,first_name,last_name'])
+            ->orderBy('due_date', 'asc')
+            ->limit(20)
+            ->get()
+            ->map(fn ($s) => [
+                'id'           => $s->id,
+                'loan_number'  => $s->loan?->loan_number,
+                'borrower'     => trim(($s->loan?->borrower?->first_name ?? '') . ' ' . ($s->loan?->borrower?->last_name ?? '')),
+                'due_date'     => $s->due_date,
+                'total_due'    => $s->total_due,
+                'status'       => $s->status,
+                'days_overdue' => now()->diffInDays(\Carbon\Carbon::parse($s->due_date), false) * -1,
+            ]);
+        return response()->json($rows);
     });
 
     // ── Dashboard Collections Chart ───────────────────────────────────────────

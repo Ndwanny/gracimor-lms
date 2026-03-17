@@ -1271,11 +1271,17 @@ body { overflow-x: hidden; }
         <a href="/overdue" style="color:var(--red);text-decoration:underline;margin-left:6px">View overdue clients →</a>
       </div>
 
-      <div class="alert-bar warning animate delay-1" style="margin-bottom:24px" x-show="(stats.due_today?.count ?? 0) > 0">
+      <div class="alert-bar warning animate delay-1" style="margin-bottom:8px" x-show="(stats.due_today?.count ?? 0) > 0">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <strong x-text="(stats.due_today?.count ?? 0) + ' repayment' + ((stats.due_today?.count ?? 0) === 1 ? '' : 's') + ' due today'">— due today</strong>
         &mdash; <span x-text="fmtK(stats.due_today?.expected ?? 0)">K —</span> expected.
-        <a href="/payments" style="color:var(--amber);text-decoration:underline;margin-left:6px">View due today →</a>
+        <a href="/payments" style="color:var(--amber);text-decoration:underline;margin-left:6px">View →</a>
+      </div>
+      <div class="alert-bar danger animate delay-1" style="margin-bottom:24px" x-show="(stats.past_due?.count ?? 0) > 0">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <strong x-text="(stats.past_due?.count ?? 0) + ' past-due instalment' + ((stats.past_due?.count ?? 0) === 1 ? '' : 's') + ' unpaid'">— past due</strong>
+        &mdash; <span x-text="fmtK(stats.past_due?.expected ?? 0)">K —</span> outstanding.
+        <a href="/overdue" style="color:#FCA5A5;text-decoration:underline;margin-left:6px">View →</a>
       </div>
 
       <!-- Welcome strip -->
@@ -1403,28 +1409,29 @@ body { overflow-x: hidden; }
       <!-- Due today + Overdue + Mini calendar -->
       <div class="grid-3">
 
-        <!-- Due Today -->
+        <!-- Due Today + Past Due -->
         <div class="card animate delay-2">
           <div class="card-header">
-            <span class="card-title">Due Today</span>
-            <span class="badge badge-pending" x-text="(stats.due_today?.count ?? 0) + ' client' + ((stats.due_today?.count ?? 0) === 1 ? '' : 's')">— clients</span>
+            <span class="card-title">Due &amp; Past Due</span>
+            <span class="badge badge-pending" x-text="((stats.due_today?.count ?? 0) + (stats.past_due?.count ?? 0)) + ' instalment' + (((stats.due_today?.count ?? 0) + (stats.past_due?.count ?? 0)) === 1 ? '' : 's')">— instalments</span>
           </div>
           <div class="card-body" style="padding-top:8px;padding-bottom:8px">
-            <template x-for="client in dueToday" :key="client.id">
+            <div x-show="dueToday.length===0" style="text-align:center;padding:20px;color:var(--slate);font-size:13px">No unpaid instalments due.</div>
+            <template x-for="item in dueToday" :key="item.id">
               <div class="due-item">
-                <div class="due-avatar" :style="`background: linear-gradient(135deg, ${client.color1}, ${client.color2})`" x-text="client.initials"></div>
+                <div class="due-avatar" :style="`background: linear-gradient(135deg, ${item.color1}, ${item.color2})`" x-text="item.initials"></div>
                 <div>
-                  <div class="due-name" x-text="client.name"></div>
-                  <div class="due-loan" x-text="client.loan"></div>
+                  <div class="due-name" x-text="item.borrower"></div>
+                  <div class="due-loan" x-text="item.loan_number"></div>
                 </div>
                 <div style="margin-left:auto;text-align:right">
-                  <div class="due-amount" x-text="client.amount"></div>
-                  <div x-show="client.partial" class="badge badge-partial mt-4">Part-paid</div>
-                  <div x-show="!client.partial" class="badge badge-pending mt-4">Unpaid</div>
+                  <div class="due-amount" x-text="'K ' + Number(item.total_due).toLocaleString()"></div>
+                  <div x-show="item.days_overdue > 0" class="badge badge-overdue mt-4" x-text="item.days_overdue + 'd overdue'"></div>
+                  <div x-show="item.days_overdue <= 0" class="badge badge-pending mt-4">Due Today</div>
                 </div>
               </div>
             </template>
-            <button class="btn-ghost" style="width:100%;margin-top:12px;justify-content:center" @click="window.location.href='/payments'" x-text="'View All ' + (stats.due_today?.count ?? 0) + ' →'">View All →</button>
+            <button class="btn-ghost" style="width:100%;margin-top:12px;justify-content:center" @click="window.location.href='/overdue'" x-text="'View All ' + ((stats.due_today?.count??0)+(stats.past_due?.count??0)) + ' →'">View All →</button>
           </div>
         </div>
 
@@ -1614,7 +1621,7 @@ body { overflow-x: hidden; }
       greetName: 'Manager',
       showNotifs: false,
       chartPeriod: 'week',
-      stats: { loans:{active:'-',overdue:'-'}, payments:{today_total:0,month_total:0}, overdue:{total_loans:0,total_arrears:0,penalties_outstanding:0}, due_today:{count:0,expected:0}, portfolio_value:0 },
+      stats: { loans:{active:'-',overdue:'-'}, payments:{today_total:0,month_total:0}, overdue:{total_loans:0,total_arrears:0,penalties_outstanding:0}, due_today:{count:0,expected:0}, past_due:{count:0,expected:0}, portfolio_value:0 },
       notifications: [],
 
       // ─── Due Today ───
@@ -1728,11 +1735,11 @@ body { overflow-x: hidden; }
         const token = localStorage.getItem('lms_token');
         const h = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' };
         try {
-          const [payRes, ovRes, pendRes, activeRes] = await Promise.all([
+          const [payRes, ovRes, pendRes, dueRes] = await Promise.all([
             fetch('/api/payments?per_page=5', { headers: h }),
             fetch('/api/overdue/loans?per_page=5', { headers: h }),
             fetch('/api/loans?status=pending&per_page=5', { headers: h }),
-            fetch('/api/loans?status=active&per_page=5', { headers: h }),
+            fetch('/api/dashboard/due-instalments', { headers: h }),
           ]);
 
           if (payRes.ok) {
@@ -1769,13 +1776,11 @@ body { overflow-x: hidden; }
               return { id: l.id, name: name.trim(), amount: this._dbFmtK(l.principal_amount), collateral: l.collateral_asset?.asset_type ? l.collateral_asset.asset_type.charAt(0).toUpperCase()+l.collateral_asset.asset_type.slice(1) : '—', days: daysPending };
             });
           }
-          if (activeRes.ok) {
-            const ad = await activeRes.json();
-            this.dueToday = (ad.data || []).map(l => {
-              const b = l.borrower || {};
-              const name = (b.first_name||'')+' '+(b.last_name||'');
-              const [color1, color2] = this._dbAvatar(name.trim());
-              return { id: l.id, name: name.trim(), loan: l.loan_number, amount: l.monthly_instalment ? this._dbFmtK(l.monthly_instalment) : '—', initials: this._dbInitials(name.trim()), partial: false, color1, color2 };
+          if (dueRes.ok) {
+            const dd = await dueRes.json();
+            this.dueToday = (Array.isArray(dd) ? dd : []).map(s => {
+              const [color1, color2] = this._dbAvatar(s.borrower || '');
+              return { ...s, initials: this._dbInitials(s.borrower||''), color1, color2 };
             });
           }
 
