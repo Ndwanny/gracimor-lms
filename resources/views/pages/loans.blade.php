@@ -2699,6 +2699,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
               disbursement_method:    methodMap[this.disburseMethod] || 'cash',
               disbursement_reference: this.disburseRef || null,
               disburse_notes:         this.disburseNotes || null,
+              disbursed_at:           this.disburseDate || null,
             }),
           });
           const data = await res.json();

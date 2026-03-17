@@ -93,7 +93,7 @@ class LoanController extends Controller
             'collateral_asset_id'  => 'required|exists:collateral_assets,id',
             'principal_amount'     => 'required|numeric|min:1000',
             'term_months'          => 'required|integer|in:1,2,3,4',
-            'first_repayment_date' => 'required|date|after_or_equal:today',
+            'first_repayment_date' => 'required|date',
             'disbursement_method'  => 'required|in:cash,bank_transfer,mobile_money',
             'loan_purpose'         => 'nullable|string|max:500',
         ]);
@@ -183,6 +183,7 @@ class LoanController extends Controller
             'disbursement_method'    => 'required|in:cash,bank_transfer,mobile_money',
             'disbursement_reference' => 'nullable|string|max:100',
             'disburse_notes'         => 'nullable|string|max:500',
+            'disbursed_at'           => 'nullable|date',
         ]);
 
         $loan = $this->loanService->disburse($loan, Auth::user(), $validated);
