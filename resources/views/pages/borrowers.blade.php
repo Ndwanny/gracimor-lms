@@ -234,6 +234,7 @@
     .toast-msg{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:fadeUp .3s ease}
 
     .coll-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:var(--navy-line);color:var(--slate-lt)}
+    [x-cloak]{display:none!important}
   </style>
 
   <style id="lms-responsive">
@@ -1491,7 +1492,7 @@ body { overflow-x: hidden; }
   </main>
 
   <!-- ═══════ ADD COLLATERAL MODAL ═══════ -->
-  <div x-show="showAddColl" style="display:none;position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"
+  <div x-cloak x-show="showAddColl" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"
        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
     <div style="position:absolute;inset:0;background:rgba(0,0,0,.55)" @click="showAddColl=false"></div>
     <div style="position:relative;background:var(--navy-card);border:1px solid var(--navy-line);border-radius:14px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;z-index:1">
@@ -1544,7 +1545,7 @@ body { overflow-x: hidden; }
   </div>
 
   <!-- ═══════ EDIT BORROWER MODAL ═══════ -->
-  <div x-show="showEdit" style="display:none;position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"
+  <div x-cloak x-show="showEdit" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"
        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
     <div style="position:absolute;inset:0;background:rgba(0,0,0,.55)" @click="showEdit=false"></div>
     <div style="position:relative;background:var(--navy-card);border:1px solid var(--navy-line);border-radius:14px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;z-index:1">
@@ -1592,7 +1593,7 @@ body { overflow-x: hidden; }
   </div>
 
   <!-- ═══════ UPLOAD DOCUMENT MODAL ═══════ -->
-  <div x-show="showUploadModal" style="display:none;position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"
+  <div x-cloak x-show="showUploadModal" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"
        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
     <div style="position:absolute;inset:0;background:rgba(0,0,0,.55)" @click="showUploadModal=false"></div>
     <div style="position:relative;background:var(--navy-card);border:1px solid var(--navy-line);border-radius:14px;width:100%;max-width:440px;z-index:1">
