@@ -1236,34 +1236,35 @@ html, body { overflow-x: hidden; max-width: 100vw; }
           <button class="tbtn copper" @click="showNewUser=true">+ Add User</button>
         </div>
 
-        <div class="stg">
+        <div x-show="usersLoading" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">Loading users…</div>
+        <div class="stg" x-show="!usersLoading">
           <template x-for="u in users" :key="u.id">
             <div class="user-card">
-              <div class="uav" :style="`background:linear-gradient(135deg,${u.c1},${u.c2})`" x-text="u.ini"></div>
+              <div class="uav" :style="`background:linear-gradient(135deg,${uColors(u.role)[0]},${uColors(u.role)[1]})`" x-text="uIni(u.name)"></div>
               <div style="flex:1">
                 <div style="font-size:14px;font-weight:700" x-text="u.name"></div>
                 <div class="mono" style="font-size:11.5px;color:var(--slate);margin-top:2px" x-text="u.email"></div>
               </div>
               <div style="min-width:100px;text-align:center"><span class="role-chip" :class="u.role" x-text="u.role"></span></div>
               <div style="font-size:12px;color:var(--slate);min-width:90px;text-align:center">
-                <div x-text="u.loans+' loans'"></div>
-                <div style="color:var(--slate2);font-size:11px;margin-top:2px" x-text="u.lastLogin"></div>
+                <div x-text="(u.loans_count||0)+' loans'"></div>
+                <div style="color:var(--slate2);font-size:11px;margin-top:2px" x-text="'Since '+fmtDate(u.created_at)"></div>
               </div>
               <div style="display:flex;gap:4px;align-items:center;min-width:110px">
-                <span class="pdot" :style="`background:${u.perms.approve?'var(--green)':'var(--bg4)'}`" title="Approve"></span>
-                <span class="pdot" :style="`background:${u.perms.disburse?'var(--copper3)':'var(--bg4)'}`" title="Disburse"></span>
-                <span class="pdot" :style="`background:${u.perms.waive?'var(--blue)':'var(--bg4)'}`" title="Waive Penalties"></span>
-                <span class="pdot" :style="`background:${u.perms.report?'var(--purple)':'var(--bg4)'}`" title="Reports"></span>
+                <span class="pdot" :style="`background:${uPerms(u.role).approve?'var(--green)':'var(--bg4)'}`" title="Approve"></span>
+                <span class="pdot" :style="`background:${uPerms(u.role).disburse?'var(--copper3)':'var(--bg4)'}`" title="Disburse"></span>
+                <span class="pdot" :style="`background:${uPerms(u.role).waive?'var(--blue)':'var(--bg4)'}`" title="Waive Penalties"></span>
+                <span class="pdot" :style="`background:${uPerms(u.role).report?'var(--purple)':'var(--bg4)'}`" title="Reports"></span>
                 <span style="font-size:10.5px;color:var(--slate2);margin-left:4px">perms</span>
               </div>
-              <div style="min-width:70px"><span :style="`color:${u.active?'var(--green)':'var(--slate2)'}`" style="font-size:12px;font-weight:700" x-text="u.active?'● Active':'● Inactive'"></span></div>
+              <div style="min-width:70px"><span :style="`color:${u.is_active?'var(--green)':'var(--slate2)'}`" style="font-size:12px;font-weight:700" x-text="u.is_active?'● Active':'● Inactive'"></span></div>
               <div style="display:flex;gap:6px">
-                <button class="uact" @click="toast('info','✏️','Edit panel opening for '+u.name)">Edit</button>
-                <button class="uact" @click="toast('info','🔑','Password reset sent to '+u.email)">Reset PW</button>
-                <button class="uact dng" x-show="u.role!=='superadmin'" @click="toast('warn','🚫',u.name+' deactivated')">Deactivate</button>
+                <button class="uact dng" x-show="u.role!=='superadmin'&&u.is_active" @click="deactivateUser(u)">Deactivate</button>
+                <span x-show="!u.is_active" style="font-size:12px;color:var(--slate);padding:4px 8px">Inactive</span>
               </div>
             </div>
           </template>
+          <div x-show="!usersLoading&&users.length===0" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">No users found.</div>
         </div>
 
         <!-- Permissions matrix -->
@@ -1312,11 +1313,9 @@ html, body { overflow-x: hidden; max-width: 100vw; }
           </select>
           <select class="fsel" x-model="auditUser">
             <option value="">All Users</option>
-            <option>F. Mwala</option>
-            <option>C. Banda</option>
-            <option>N. Tembo</option>
-            <option>K. Simwanza</option>
-            <option>System</option>
+            <template x-for="u in users" :key="u.id">
+              <option :value="u.id" x-text="u.name"></option>
+            </template>
           </select>
           <input type="date" class="fsel" :value="auditFrom">
           <input type="date" class="fsel" :value="auditTo">
@@ -1333,22 +1332,24 @@ html, body { overflow-x: hidden; max-width: 100vw; }
               <th>Timestamp</th><th>User</th><th>Action</th><th>Entity</th><th>Description</th><th>IP Address</th>
             </tr></thead>
             <tbody>
+              <tr x-show="auditLoading"><td colspan="6" style="text-align:center;padding:24px;color:var(--slate)">Loading…</td></tr>
+              <tr x-show="!auditLoading&&filteredAudit.length===0"><td colspan="6" style="text-align:center;padding:24px;color:var(--slate)">No audit entries found.</td></tr>
               <template x-for="e in filteredAudit" :key="e.id">
                 <tr>
-                  <td class="mono" style="font-size:11.5px;color:var(--slate);white-space:nowrap" x-text="e.ts"></td>
+                  <td class="mono" style="font-size:11.5px;color:var(--slate);white-space:nowrap" x-text="fmtDate(e.created_at)"></td>
                   <td>
                     <div style="display:flex;align-items:center;gap:8px">
-                      <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0" :style="`background:linear-gradient(135deg,${e.c1},${e.c2})`" x-text="e.ini"></div>
+                      <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0" :style="`background:linear-gradient(135deg,${uColors(e.user?.role||'')[0]},${uColors(e.user?.role||'')[1]})`" x-text="uIni(e.user?.name||'SYS')"></div>
                       <div>
-                        <div style="font-size:13px;font-weight:600" x-text="e.user"></div>
-                        <div style="font-size:11px;color:var(--slate)" x-text="e.role"></div>
+                        <div style="font-size:13px;font-weight:600" x-text="e.user?.name||'System'"></div>
+                        <div style="font-size:11px;color:var(--slate)" x-text="e.user_role||e.user?.role||'system'"></div>
                       </div>
                     </div>
                   </td>
-                  <td><span class="achip" :class="'ac-'+e.type" x-text="e.action"></span></td>
-                  <td class="mono" style="font-size:12px;color:var(--teal)" x-text="e.entity"></td>
-                  <td style="font-size:12.5px;color:var(--slate);max-width:300px" x-text="e.desc"></td>
-                  <td class="mono" style="font-size:11.5px;color:var(--slate2)" x-text="e.ip"></td>
+                  <td><span class="achip" :class="'ac-'+(e.action||'').split('.')[0]" x-text="e.action"></span></td>
+                  <td class="mono" style="font-size:12px;color:var(--teal)" x-text="e.auditable_id||'—'"></td>
+                  <td style="font-size:12.5px;color:var(--slate);max-width:300px" x-text="e.description||'—'"></td>
+                  <td class="mono" style="font-size:11.5px;color:var(--slate2)" x-text="e.ip_address||'—'"></td>
                 </tr>
               </template>
             </tbody>
@@ -1918,27 +1919,27 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   <div class="modal md">
     <div class="mh"><div class="mi blu">👤</div><div><div class="mt">Add New User</div><div class="ms">Create a staff account</div></div><button class="mc" @click="showNewUser=false">✕</button></div>
     <div class="mb">
-      <div class="gr gr2">
-        <div class="fg"><label class="fl">First Name *</label><input class="fi" placeholder="First name"></div>
-        <div class="fg"><label class="fl">Last Name *</label><input class="fi" placeholder="Last name"></div>
-      </div>
-      <div class="fg"><label class="fl">Email Address *</label><input class="fi mono" type="email" placeholder="officer@gracimor.co.zm"></div>
+      <div class="fg"><label class="fl">Full Name *</label><input class="fi" placeholder="e.g. Mwansa Bwalya" x-model="newUser.name"></div>
+      <div class="fg"><label class="fl">Email Address *</label><input class="fi mono" type="email" placeholder="officer@gracimor.co.zm" x-model="newUser.email"></div>
       <div class="gr gr2">
         <div class="fg">
           <label class="fl">Role *</label>
-          <select class="fs"><option>— Select role —</option><option>superadmin</option><option>ceo</option><option>manager</option><option>officer</option><option>accountant</option></select>
+          <select class="fs" x-model="newUser.role">
+            <option value="">— Select role —</option>
+            <option value="superadmin">superadmin</option>
+            <option value="ceo">ceo</option>
+            <option value="manager">manager</option>
+            <option value="officer">officer</option>
+            <option value="accountant">accountant</option>
+          </select>
         </div>
-        <div class="fg"><label class="fl">Phone</label><input class="fi mono" placeholder="+260 9XX XXX XXX"></div>
+        <div class="fg"><label class="fl">Phone</label><input class="fi mono" placeholder="+260 9XX XXX XXX" x-model="newUser.phone"></div>
       </div>
-      <div class="fg"><label class="fl">Temporary Password *</label><input class="fi mono" type="password" placeholder="Min 8 characters"></div>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px">
-        <input type="checkbox" checked style="accent-color:var(--copper)">
-        <span style="font-size:13.5px;color:var(--slate)">Send welcome email with login instructions</span>
-      </label>
+      <div class="fg"><label class="fl">Password *</label><input class="fi mono" type="password" placeholder="Min 8 characters" x-model="newUser.password"></div>
     </div>
     <div class="mf">
       <button class="mbtn gst" @click="showNewUser=false">Cancel</button>
-      <button class="mbtn cop" @click="showNewUser=false;toast('ok','✓','User account created successfully')">✓ Create User</button>
+      <button class="mbtn cop" @click="createUser()" :disabled="newUserSaving" x-text="newUserSaving?'Creating…':'✓ Create User'"></button>
     </div>
   </div>
 </div>
@@ -2007,15 +2008,9 @@ function app(){
       {key:'report',  name:'Daily Portfolio Report Email',desc:'Generate and email portfolio summary to CEO and Manager',           enabled:false, time:'07:00',lastRun:'—',lastStatus:'—'},
     ],
 
-    users:[
-      {id:1,name:'Admin System',       ini:'AS',c1:'#dc2626',c2:'#ef4444',role:'superadmin',email:'admin@gracimor.co.zm',      loans:0, lastLogin:'Today',        active:true, perms:{approve:true, disburse:true, waive:true, report:true}},
-      {id:2,name:'E. Mwansa',          ini:'EM',c1:'#b45309',c2:'#d97706',role:'ceo',        email:'ceo@gracimor.co.zm',        loans:0, lastLogin:'25 Feb 2026', active:true, perms:{approve:true, disburse:true, waive:true, report:true}},
-      {id:3,name:'K. Simwanza',        ini:'KS',c1:'#0891b2',c2:'#06b6d4',role:'manager',    email:'k.simwanza@gracimor.co.zm', loans:0, lastLogin:'Today',       active:true, perms:{approve:true, disburse:false,waive:true, report:true}},
-      {id:4,name:'F. Mwala',           ini:'FM',c1:'#059669',c2:'#10b981',role:'officer',    email:'f.mwala@gracimor.co.zm',    loans:52,lastLogin:'Today',       active:true, perms:{approve:false,disburse:false,waive:false,report:true}},
-      {id:5,name:'C. Banda',           ini:'CB',c1:'#7c3aed',c2:'#8b5cf6',role:'officer',    email:'c.banda@gracimor.co.zm',    loans:48,lastLogin:'Today',       active:true, perms:{approve:false,disburse:false,waive:false,report:true}},
-      {id:6,name:'N. Tembo',           ini:'NT',c1:'#166534',c2:'#22c55e',role:'officer',    email:'n.tembo@gracimor.co.zm',    loans:42,lastLogin:'26 Feb 2026', active:true, perms:{approve:false,disburse:false,waive:false,report:true}},
-      {id:7,name:'P. Lungu',           ini:'PL',c1:'#4f46e5',c2:'#6366f1',role:'accountant', email:'p.lungu@gracimor.co.zm',    loans:0, lastLogin:'25 Feb 2026', active:true, perms:{approve:false,disburse:false,waive:false,report:true}},
-    ],
+    users: [], usersLoading: false,
+    newUser: { name:'', email:'', role:'', phone:'', password:'' },
+    newUserSaving: false,
 
     perms:[
       {label:'Apply Loans',          roles:[true,  true,  true,  true,  false]},
@@ -2034,20 +2029,7 @@ function app(){
       {label:'View Audit Log',       roles:[true,  true,  true,  false, false]},
     ],
 
-    auditLog:[
-      {id:1, ts:'26 Feb 2026  14:32:11',user:'F. Mwala',   ini:'FM',c1:'#059669',c2:'#10b981',role:'officer',   type:'payment',  action:'payment.recorded',     entity:'RCP-00892', desc:'Payment K 9,508 for LN-20260018 — Charity Mutale (Cash)',         ip:'192.168.1.22'},
-      {id:2, ts:'26 Feb 2026  11:15:44',user:'K. Simwanza',ini:'KS',c1:'#0891b2',c2:'#06b6d4',role:'manager',   type:'loan',     action:'loan.approved',         entity:'LN-20260051',desc:'Loan approved K 45,000 vehicle-backed — Oliver Zulu',           ip:'192.168.1.10'},
-      {id:3, ts:'26 Feb 2026  09:40:08',user:'System',     ini:'SY',c1:'#374151',c2:'#6b7280',role:'system',    type:'penalty',  action:'penalty.applied',       entity:'BATCH-0088',desc:'Daily penalties K 1,240 applied across 14 overdue instalments',  ip:'127.0.0.1'},
-      {id:4, ts:'26 Feb 2026  09:10:22',user:'System',     ini:'SY',c1:'#374151',c2:'#6b7280',role:'system',    type:'system',   action:'job.completed',         entity:'ApplyPenaltiesJob',desc:'Completed in 0.84s — 19 instalments processed',          ip:'127.0.0.1'},
-      {id:5, ts:'25 Feb 2026  17:55:00',user:'C. Banda',   ini:'CB',c1:'#7c3aed',c2:'#8b5cf6',role:'officer',   type:'borrower', action:'borrower.kyc_verified', entity:'BRW-00051', desc:'KYC verified — Oliver Zulu, NRC 601022/88/1',                   ip:'192.168.1.18'},
-      {id:6, ts:'25 Feb 2026  16:20:33',user:'F. Mwala',   ini:'FM',c1:'#059669',c2:'#10b981',role:'officer',   type:'penalty',  action:'penalty.waived',        entity:'LN-20260009',desc:'K 660 penalty waived for Grace Nkonde — borrower hardship',    ip:'192.168.1.22'},
-      {id:7, ts:'25 Feb 2026  14:44:19',user:'K. Simwanza',ini:'KS',c1:'#0891b2',c2:'#06b6d4',role:'manager',   type:'loan',     action:'loan.disbursed',        entity:'LN-20260050',desc:'K 80,000 land-backed disbursed via bank transfer — BRW-00049', ip:'192.168.1.10'},
-      {id:8, ts:'25 Feb 2026  10:05:58',user:'E. Mwansa',  ini:'EM',c1:'#b45309',c2:'#d97706',role:'ceo',       type:'user',     action:'user.role_changed',     entity:'USR-00007', desc:'P. Lungu role changed from officer to accountant',              ip:'192.168.1.5'},
-      {id:9, ts:'24 Feb 2026  15:33:41',user:'N. Tembo',   ini:'NT',c1:'#166534',c2:'#22c55e',role:'officer',   type:'payment',  action:'payment.recorded',      entity:'RCP-00889', desc:'Payment K 6,720 for LN-20260041 — Daniel Phiri (Cash)',          ip:'192.168.1.25'},
-      {id:10,ts:'24 Feb 2026  09:02:11',user:'System',     ini:'SY',c1:'#374151',c2:'#6b7280',role:'system',    type:'system',   action:'reminders.dispatched',  entity:'SMS-0881',  desc:'14 SMS reminders sent via Africa\'s Talking',                   ip:'127.0.0.1'},
-      {id:11,ts:'23 Feb 2026  11:44:55',user:'F. Mwala',   ini:'FM',c1:'#059669',c2:'#10b981',role:'officer',   type:'loan',     action:'loan.applied',          entity:'LN-20260051',desc:'Loan application K 45,000 vehicle-backed — Oliver Zulu',        ip:'192.168.1.22'},
-      {id:12,ts:'23 Feb 2026  09:10:00',user:'C. Banda',   ini:'CB',c1:'#7c3aed',c2:'#8b5cf6',role:'officer',   type:'borrower', action:'borrower.created',      entity:'BRW-00051', desc:'New borrower: Oliver Zulu — NRC 601022/88/1',                   ip:'192.168.1.18'},
-    ],
+    auditLog: [], auditLoading: false,
 
     templates:[
       {key:'pre7', name:'Pre-Due — 7 Days',   trigger:'pre_due_7_days',   enabled:true,  channels:['SMS'],
@@ -2074,9 +2056,11 @@ function app(){
     get filteredAudit(){
       return this.auditLog.filter(e=>{
         const s = this.auditSearch.toLowerCase();
-        const matchSearch = !s || e.user.toLowerCase().includes(s) || e.action.includes(s) || e.entity.toLowerCase().includes(s) || e.desc.toLowerCase().includes(s);
-        const matchType = !this.auditType || e.type===this.auditType;
-        const matchUser = !this.auditUser || e.user===this.auditUser;
+        const userName = e.user?.name || 'System';
+        const entity   = e.auditable_id ? String(e.auditable_id) : '';
+        const matchSearch = !s || userName.toLowerCase().includes(s) || (e.action||'').includes(s) || entity.toLowerCase().includes(s) || (e.description||'').toLowerCase().includes(s);
+        const matchType   = !this.auditType || (e.action||'').startsWith(this.auditType);
+        const matchUser   = !this.auditUser || String(e.user_id)===String(this.auditUser);
         return matchSearch && matchType && matchUser;
       });
     },
@@ -2134,19 +2118,69 @@ function app(){
       this.auditTo   = yr+'-'+pad(mo+1)+'-'+pad(day);
       // Update job lastRun to today
       this.jobs.forEach(j => { j.lastRun = fmtShort(now)+', '+j.time; });
-      // Update user lastLogin (id 2, 6 → -1; id 7 → -1; others stay 'Today')
-      this.users.forEach(u => {
-        if (u.lastLogin==='Today') u.lastLogin='Today';
-        else u.lastLogin = relDate(-1);
-      });
-      // Update audit log timestamps (ids 1-4 = today, 5-8 = yesterday, 9-10 = -2d, 11-12 = -3d)
-      const tsMap = {1:0,2:0,3:0,4:0, 5:-1,6:-1,7:-1,8:-1, 9:-2,10:-2, 11:-3,12:-3};
-      const timeMap = {1:'14:32:11',2:'11:15:44',3:'09:40:08',4:'09:10:22',5:'17:55:00',6:'16:20:33',7:'14:44:19',8:'10:05:58',9:'15:33:41',10:'09:02:11',11:'11:44:55',12:'09:10:00'};
-      this.auditLog.forEach(e => {
-        const off = tsMap[e.id]; const time = timeMap[e.id];
-        if (off !== undefined) e.ts = relDate(off)+'  '+(time||'00:00:00');
-      });
+      this.loadUsers();
+      this.loadAuditLog();
     },
+
+    // ── User helpers ──────────────────────────────────────
+    uIni(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); },
+    uColors(role){ const m={superadmin:['#dc2626','#ef4444'],ceo:['#b45309','#d97706'],manager:['#0891b2','#06b6d4'],officer:['#059669','#10b981'],accountant:['#4f46e5','#6366f1']}; return m[role]||['#374151','#6b7280']; },
+    uPerms(role){ const a=role==='superadmin'||role==='ceo'; const m=a||role==='manager'; return {approve:a||role==='manager',disburse:a,waive:m,report:true}; },
+
+    async loadUsers(){
+      this.usersLoading = true;
+      try {
+        const res = await fetch(`${this.API}/users?per_page=100`, { headers:{'Authorization':'Bearer '+this.token,'Accept':'application/json'} });
+        const data = await res.json();
+        this.users = (data.data || []);
+      } catch(e){ console.error('loadUsers',e); }
+      this.usersLoading = false;
+    },
+
+    async loadAuditLog(){
+      this.auditLoading = true;
+      try {
+        const res = await fetch(`${this.API}/audit-log?per_page=50`, { headers:{'Authorization':'Bearer '+this.token,'Accept':'application/json'} });
+        const data = await res.json();
+        this.auditLog = (data.data || []);
+      } catch(e){ console.error('loadAuditLog',e); }
+      this.auditLoading = false;
+    },
+
+    async createUser(){
+      if (!this.newUser.name||!this.newUser.email||!this.newUser.role||!this.newUser.password){ this.toast('warn','⚠️','Please fill in all required fields.'); return; }
+      this.newUserSaving = true;
+      try {
+        const res = await fetch(`${this.API}/users`, {
+          method:'POST',
+          headers:{'Authorization':'Bearer '+this.token,'Accept':'application/json','Content-Type':'application/json'},
+          body: JSON.stringify(this.newUser),
+        });
+        const data = await res.json();
+        if (!res.ok){ this.toast('err','✗', data.message || 'Could not create user.'); return; }
+        this.users.unshift(data.user);
+        this.showNewUser = false;
+        this.newUser = { name:'', email:'', role:'', phone:'', password:'' };
+        this.toast('ok','✓','User account created successfully.');
+      } catch(e){ this.toast('err','✗','Network error.'); }
+      this.newUserSaving = false;
+    },
+
+    async deactivateUser(u){
+      if (!confirm(`Deactivate ${u.name}? They will no longer be able to log in.`)) return;
+      try {
+        const res = await fetch(`${this.API}/users/${u.id}/deactivate`, {
+          method:'POST',
+          headers:{'Authorization':'Bearer '+this.token,'Accept':'application/json'},
+        });
+        const data = await res.json();
+        if (!res.ok){ this.toast('err','✗', data.message||'Could not deactivate.'); return; }
+        u.is_active = false;
+        this.toast('ok','✓', `${u.name} has been deactivated.`);
+      } catch(e){ this.toast('err','✗','Network error.'); }
+    },
+
+    fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear(); },
 
     openNew(){
       this.selProd = {id:Date.now(),name:'',code:'',collType:'vehicle',active:true,
