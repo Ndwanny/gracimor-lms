@@ -1393,6 +1393,13 @@ body { overflow-x: hidden; }
               <span style="font-size:11px;color:var(--slate)">loans currently overdue</span>
             </div>
           </div>
+          <div class="stat-card red">
+            <div class="stat-label">Past-Due Instalments</div>
+            <div class="stat-value" x-text="stats.past_due?.count ?? 0">—</div>
+            <div class="stat-sub">
+              <span style="font-size:11px;color:var(--slate)" x-text="fmtK(stats.past_due?.expected ?? 0) + ' unpaid'">—</span>
+            </div>
+          </div>
           <div class="stat-card orange">
             <div class="stat-label">Total Arrears</div>
             <div class="stat-value" x-text="fmtK(stats.overdue?.total_arrears ?? 0)">—</div>
@@ -2226,7 +2233,7 @@ function overdueApp() {
     waiveLoan: null,
     escalateLoan: null,
     waiveScope: 'all',
-    stats: { overdue: { total_loans:'-', total_arrears:0, penalties_outstanding:0, month_collections:0 } },
+    stats: { overdue: { total_loans:'-', total_arrears:0, penalties_outstanding:0, month_collections:0 }, past_due: { count:0, expected:0 } },
     waiveReason: '',
     waiveNotes: '',
     waiveScheduleId: null,
