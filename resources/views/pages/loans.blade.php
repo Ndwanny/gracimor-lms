@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>if(!localStorage.getItem("lms_token")){window.location.replace("/login");}</script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gracimor LMS — Loans</title>
@@ -2995,6 +2996,7 @@ body{font-family:Georgia,'Times New Roman',serif;background:#fff;color:#111;font
         if (!win) { this.showToast('Pop-up blocked — please allow pop-ups for this site then try again.', 'var(--amber)'); return; }
 
         win.document.write(`<!DOCTYPE html><html><head>
+  <script>if(!localStorage.getItem("lms_token")){window.location.replace("/login");}</script>
 <meta charset="UTF-8">
 <title>Loan Agreement \u2014 ${this.sel?.num || ''}</title>
 <style>${css}</style>
