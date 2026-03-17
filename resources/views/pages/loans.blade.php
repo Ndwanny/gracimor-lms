@@ -2077,7 +2077,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
                   <div style="background:var(--navy-mid);border-radius:10px;padding:14px;margin-bottom:12px">
                     <div class="xs ts mb10 f7" style="text-transform:uppercase;letter-spacing:.1em">Loan Details</div>
                     <div class="info-row" style="padding:5px 0"><div class="info-lbl">Amount</div><div class="info-val mono f6 ta" x-text="f.amount?'K '+Number(f.amount).toLocaleString():'—'"></div></div>
-                    <div class="info-row" style="padding:5px 0"><div class="info-lbl">Interest Rate</div><div class="info-val mono tc" x-text="(f.rate||'—')+'% p.a.'"></div></div>
+                    <div class="info-row" style="padding:5px 0"><div class="info-lbl">Interest Rate</div><div class="info-val mono tc" x-text="f.rate ? f.rate+'% flat' : '—'"></div></div>
                     <div class="info-row" style="padding:5px 0"><div class="info-lbl">Method</div><div class="info-val" x-text="f.method==='reducing'?'Reducing Balance':'Flat Rate'"></div></div>
                     <div class="info-row" style="padding:5px 0"><div class="info-lbl">Term</div><div class="info-val" x-text="(f.term||'—')+' months'"></div></div>
                     <div class="info-row" style="padding:5px 0"><div class="info-lbl">Monthly Instalment</div><div class="info-val mono f6" x-text="calc.monthly||'—'"></div></div>
@@ -2622,6 +2622,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         const P = parseFloat(this.f.amount) || 0;
         const n = parseInt(this.f.term)     || 0;
         const r = RATES[n] || 0;
+        this.f.rate = r || 0;
         const collVal = this.f.collateralVal ? parseFloat(this.f.collateralVal) : 0;
         if (!P || !n || !r) { this.calc = {monthly:'',totalInterest:'',totalRepay:'',ltv:null,ltvOk:true,preview:[]}; return; }
 
