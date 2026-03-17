@@ -1259,6 +1259,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
               </div>
               <div style="min-width:70px"><span :style="`color:${u.is_active?'var(--green)':'var(--slate2)'}`" style="font-size:12px;font-weight:700" x-text="u.is_active?'● Active':'● Inactive'"></span></div>
               <div style="display:flex;gap:6px">
+                <button class="uact" x-show="myRole==='superadmin'&&u.role!=='superadmin'" @click="openEditUser(u)" style="color:var(--copper3);border-color:rgba(184,115,51,.4)">Edit Role</button>
                 <button class="uact dng" x-show="u.role!=='superadmin'&&u.is_active" @click="deactivateUser(u)">Deactivate</button>
                 <span x-show="!u.is_active" style="font-size:12px;color:var(--slate);padding:4px 8px">Inactive</span>
               </div>
@@ -1914,6 +1915,32 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   </div>
 </div>
 
+<!-- EDIT USER ROLE MODAL -->
+<div class="overlay" x-show="showEditUser" @click.self="showEditUser=false" style="display:none">
+  <div class="modal sm">
+    <div class="mh"><div class="mi cop">✏️</div><div><div class="mt">Edit User Role</div><div class="ms" x-text="editingUser?.name"></div></div><button class="mc" @click="showEditUser=false">✕</button></div>
+    <div class="mb">
+      <div style="font-size:13px;color:var(--slate);margin-bottom:16px">Current role: <span style="font-weight:700;color:var(--white)" x-text="editingUser?.role"></span></div>
+      <div class="fg">
+        <label class="fl">New Role *</label>
+        <select class="fs" x-model="editUserRole">
+          <option value="ceo">ceo</option>
+          <option value="manager">manager</option>
+          <option value="officer">officer</option>
+          <option value="accountant">accountant</option>
+        </select>
+      </div>
+      <div style="margin-top:14px;padding:12px;background:rgba(184,115,51,.08);border:1px solid rgba(184,115,51,.25);border-radius:8px;font-size:12px;color:var(--slate)">
+        <span style="font-weight:700;color:var(--copper3)">Officer</span> has full operational permissions — apply, approve, disburse, payments, waive penalties, register borrowers, view reports and audit log.
+      </div>
+    </div>
+    <div class="mf">
+      <button class="mbtn gst" @click="showEditUser=false">Cancel</button>
+      <button class="mbtn cop" @click="updateUserRole()" :disabled="editUserSaving||editUserRole===editingUser?.role" x-text="editUserSaving?'Saving…':'✓ Update Role'"></button>
+    </div>
+  </div>
+</div>
+
 <!-- NEW USER MODAL -->
 <div class="overlay" x-show="showNewUser" @click.self="showNewUser=false" style="display:none">
   <div class="modal md">
@@ -2009,24 +2036,26 @@ function app(){
     ],
 
     users: [], usersLoading: false,
+    myRole: '',
     newUser: { name:'', email:'', role:'', phone:'', password:'' },
     newUserSaving: false,
+    showEditUser: false, editingUser: null, editUserRole: '', editUserSaving: false,
 
     perms:[
       {label:'Apply Loans',          roles:[true,  true,  true,  true,  false]},
-      {label:'Approve Loans',        roles:[true,  true,  true,  false, false]},
-      {label:'Disburse Funds',       roles:[true,  true,  false, false, false]},
+      {label:'Approve Loans',        roles:[true,  true,  true,  true,  false]},
+      {label:'Disburse Funds',       roles:[true,  true,  true,  true,  false]},
       {label:'Record Payments',      roles:[true,  true,  true,  true,  true]},
-      {label:'Waive Penalties',      roles:[true,  true,  true,  false, false]},
+      {label:'Waive Penalties',      roles:[true,  true,  true,  true,  false]},
       {label:'Escalate Accounts',    roles:[true,  true,  true,  true,  false]},
       {label:'Register Borrowers',   roles:[true,  true,  true,  true,  false]},
       {label:'Verify KYC',           roles:[true,  true,  true,  true,  false]},
       {label:'View Reports',         roles:[true,  true,  true,  true,  true]},
-      {label:'Export Data',          roles:[true,  true,  true,  false, true]},
+      {label:'Export Data',          roles:[true,  true,  true,  true,  true]},
       {label:'Manage Users',         roles:[true,  false, false, false, false]},
       {label:'System Settings',      roles:[true,  false, false, false, false]},
-      {label:'Edit Loan Products',   roles:[true,  true,  false, false, false]},
-      {label:'View Audit Log',       roles:[true,  true,  true,  false, false]},
+      {label:'Edit Loan Products',   roles:[true,  true,  true,  true,  false]},
+      {label:'View Audit Log',       roles:[true,  true,  true,  true,  false]},
     ],
 
     auditLog: [], auditLoading: false,
@@ -2120,12 +2149,14 @@ function app(){
       this.jobs.forEach(j => { j.lastRun = fmtShort(now)+', '+j.time; });
       this.loadUsers();
       this.loadAuditLog();
+      fetch(`${this.API}/users/me`,{headers:{'Authorization':'Bearer '+this.token,'Accept':'application/json'}})
+        .then(r=>r.json()).then(d=>{ this.myRole = d.role||''; }).catch(()=>{});
     },
 
     // ── User helpers ──────────────────────────────────────
     uIni(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); },
     uColors(role){ const m={superadmin:['#dc2626','#ef4444'],ceo:['#b45309','#d97706'],manager:['#0891b2','#06b6d4'],officer:['#059669','#10b981'],accountant:['#4f46e5','#6366f1']}; return m[role]||['#374151','#6b7280']; },
-    uPerms(role){ const a=role==='superadmin'||role==='ceo'; const m=a||role==='manager'; return {approve:a||role==='manager',disburse:a,waive:m,report:true}; },
+    uPerms(role){ const a=role==='superadmin'||role==='ceo'; const m=a||role==='manager'||role==='officer'; return {approve:a||role==='manager'||role==='officer',disburse:a||role==='officer',waive:m,report:true}; },
 
     async loadUsers(){
       this.usersLoading = true;
@@ -2178,6 +2209,26 @@ function app(){
         u.is_active = false;
         this.toast('ok','✓', `${u.name} has been deactivated.`);
       } catch(e){ this.toast('err','✗','Network error.'); }
+    },
+
+    openEditUser(u){ this.editingUser = u; this.editUserRole = u.role; this.showEditUser = true; },
+
+    async updateUserRole(){
+      if (!this.editUserRole || !this.editingUser) return;
+      this.editUserSaving = true;
+      try {
+        const res = await fetch(`${this.API}/users/${this.editingUser.id}`, {
+          method:'PUT',
+          headers:{'Authorization':'Bearer '+this.token,'Accept':'application/json','Content-Type':'application/json'},
+          body: JSON.stringify({ role: this.editUserRole }),
+        });
+        const data = await res.json();
+        if (!res.ok){ this.toast('err','✗', data.message||'Could not update role.'); return; }
+        this.editingUser.role = this.editUserRole;
+        this.showEditUser = false;
+        this.toast('ok','✓', `${this.editingUser.name}'s role updated to ${this.editUserRole}.`);
+      } catch(e){ this.toast('err','✗','Network error.'); }
+      this.editUserSaving = false;
     },
 
     fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear(); },
