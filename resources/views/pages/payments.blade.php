@@ -746,12 +746,6 @@ body { overflow-x: hidden; }
   /* Remove overlay chrome */
   .rcpt-controls { display: none !important; }
 
-  /* Ensure grids render correctly in print */
-  .rcpt-body > div[style*="grid-template-columns:1fr 1fr"],
-  .rcpt-body > div[style*="grid-template-columns:1fr 1fr 1fr"] {
-    display: grid !important;
-  }
-
   /* Keep table borders visible */
   .rcpt-bk-table, .rcpt-bk-table th, .rcpt-bk-table td {
     border: 1px solid #e2e8f0 !important;
@@ -1333,23 +1327,25 @@ body { overflow-x: hidden; }
 
               <!-- Balance info -->
               <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px 16px;margin-bottom:20px">
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-                  <div>
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;margin-bottom:4px">Principal Balance Before</div>
-                    <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#7c2d12" x-text="activeReceipt.balBefore||'—'"></div>
-                    <div style="font-size:9px;color:#c2410c;margin-top:2px">(principal only)</div>
-                  </div>
-                  <div style="text-align:center">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;margin-bottom:4px">Payment Applied</div>
-                    <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#166534" x-text="'− ' + activeReceipt.total"></div>
-                    <div style="font-size:9px;color:#c2410c;margin-top:2px">(principal + interest)</div>
-                  </div>
-                  <div style="text-align:right">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;margin-bottom:4px">Principal Balance After</div>
-                    <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#7c2d12" x-text="activeReceipt.bal==='K 0'?'K 0 (Settled)':activeReceipt.bal"></div>
-                    <div style="font-size:9px;color:#c2410c;margin-top:2px">(principal only)</div>
-                  </div>
-                </div>
+                <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+                  <tr>
+                    <td style="width:33.33%;vertical-align:top;padding:0">
+                      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;margin-bottom:4px">Total Balance Before</div>
+                      <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#7c2d12" x-text="activeReceipt.balBefore||'—'"></div>
+                      <div style="font-size:9px;color:#c2410c;margin-top:2px">outstanding</div>
+                    </td>
+                    <td style="width:33.33%;vertical-align:top;padding:0;text-align:center">
+                      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;margin-bottom:4px">Payment Applied</div>
+                      <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#166534" x-text="'− ' + activeReceipt.total"></div>
+                      <div style="font-size:9px;color:#c2410c;margin-top:2px">principal + interest</div>
+                    </td>
+                    <td style="width:33.33%;vertical-align:top;padding:0;text-align:right">
+                      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;margin-bottom:4px">Total Balance After</div>
+                      <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#7c2d12" x-text="activeReceipt.bal==='K 0'?'K 0 (Settled)':activeReceipt.bal"></div>
+                      <div style="font-size:9px;color:#c2410c;margin-top:2px">outstanding</div>
+                    </td>
+                  </tr>
+                </table>
               </div>
 
               <!-- Type badge -->
@@ -1383,16 +1379,16 @@ body { overflow-x: hidden; }
 
   <!-- Success overlay (after submitting payment) -->
   <div class="receipt-overlay" x-show="showSuccess" x-transition style="display:none">
-    <div style="background:var(--navy-card);border:1px solid var(--navy-line);border-radius:20px;padding:48px;text-align:center;max-width:460px;width:100%">
+    <div style="background:var(--navy-card);border:1px solid var(--navy-line);border-radius:20px;padding:clamp(24px,5vw,48px);text-align:center;max-width:460px;width:calc(100% - 32px);box-sizing:border-box">
       <span class="success-ic">✅</span>
-      <div style="font-family:'Playfair Display',serif;font-size:24px;color:var(--white);margin-bottom:8px">Payment Recorded!</div>
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(18px,4vw,24px);color:var(--white);margin-bottom:8px">Payment Recorded!</div>
       <div class="sm ts mb20">The payment has been saved and the loan balance updated in real-time.</div>
       <div style="background:var(--navy-mid);border-radius:10px;padding:16px;margin-bottom:20px">
-        <div class="mono f6 tc" style="font-size:18px" x-text="'Receipt: ' + successData.rc"></div>
+        <div class="mono f6 tc" style="font-size:clamp(14px,4vw,18px)" x-text="'Receipt: ' + successData.rc"></div>
         <div class="xs ts mt4" x-text="successData.borrower + ' · ' + successData.loan"></div>
         <div class="mono tg f7 mt8" x-text="successData.amount + ' received'"></div>
       </div>
-      <div class="flex g10 jc">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
         <button class="btn-g" @click="showSuccess=false;view='list'">← Back to Payments</button>
         <button class="btn-p" @click="showSuccess=false;openReceipt(lastPayment)">🧾 View Receipt</button>
         <button class="btn-green" @click="showSuccess=false;resetForm()">+ Record Another</button>
@@ -1483,7 +1479,7 @@ body { overflow-x: hidden; }
           officer:   p.recorded_by?.name || '—',
           ref:       p.reference || '',
           rawDate:   (p.payment_date || '').split('T')[0],
-          instalment:'—',
+          instalment: p.loan_schedule ? '#' + p.loan_schedule.instalment_number : '—',
           amountWords: '',
         };
       },
