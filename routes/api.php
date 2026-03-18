@@ -227,7 +227,7 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
 
         // KYC
         Route::post('{borrower}/verify-kyc',     [BorrowerController::class, 'verifyKyc'])->name('verify-kyc')
-             ->middleware('role:superadmin,ceo,manager');
+             ->middleware('role:superadmin,ceo,manager,officer');
 
         // Documents
         Route::post('{borrower}/documents',                          [BorrowerController::class, 'uploadDocument'])->name('documents.upload');
@@ -253,14 +253,14 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
 
         // Workflow transitions — require senior roles
         Route::post('{loan}/approve',            [LoanController::class, 'approve'])->name('approve')
-             ->middleware('role:superadmin,ceo,manager');
+             ->middleware('role:superadmin,ceo,manager,officer');
         Route::post('{loan}/reject',             [LoanController::class, 'reject'])->name('reject')
-             ->middleware('role:superadmin,ceo,manager');
+             ->middleware('role:superadmin,ceo,manager,officer');
         Route::post('{loan}/disburse',           [LoanController::class, 'disburse'])->name('disburse')
-             ->middleware('role:superadmin,ceo');
+             ->middleware('role:superadmin,ceo,manager,officer');
         Route::post('{loan}/early-settle',       [LoanController::class, 'earlySettle'])->name('early-settle');
         Route::post('{loan}/write-off',          [LoanController::class, 'writeOff'])->name('write-off')
-             ->middleware('role:superadmin,ceo,manager');
+             ->middleware('role:superadmin,ceo,manager,officer');
 
         // Manual reminder
         Route::post('{loan}/send-reminder',      [LoanController::class, 'sendReminder'])->name('send-reminder');
@@ -300,7 +300,7 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         Route::post('apply-daily',               [PenaltyController::class, 'applyDaily'])->name('apply-daily')
              ->middleware('role:superadmin,ceo,manager');
         Route::post('waive',                     [PenaltyController::class, 'waive'])->name('waive')
-             ->middleware('role:superadmin,ceo,manager');
+             ->middleware('role:superadmin,ceo,manager,officer');
         Route::post('bulk-waive',                [PenaltyController::class, 'bulkWaive'])->name('bulk-waive')
              ->middleware('role:superadmin,ceo');
     });
@@ -325,7 +325,7 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         Route::get('collections-queue',          [OverdueController::class, 'collectionsQueue'])->name('collections-queue');
         Route::post('log-contact',               [OverdueController::class, 'logContact'])->name('log-contact');
         Route::post('escalate/{loan}',           [OverdueController::class, 'escalate'])->name('escalate')
-             ->middleware('role:superadmin,ceo,manager');
+             ->middleware('role:superadmin,ceo,manager,officer');
     });
 
 
@@ -396,8 +396,8 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         Route::post('guarantors', [ImportController::class, 'importGuarantors'])->name('guarantors');
     });
 
-    // Exports — manager+
-    Route::middleware('role:superadmin,ceo,manager')->prefix('export')->name('export.')->group(function () {
+    // Exports — officer+
+    Route::middleware('role:superadmin,ceo,manager,officer')->prefix('export')->name('export.')->group(function () {
         Route::get('borrowers', [ImportController::class, 'exportBorrowers'])->name('borrowers');
         Route::get('loans',     [ImportController::class, 'exportLoans'])->name('loans');
         Route::get('payments',  [ImportController::class, 'exportPayments'])->name('payments');
@@ -405,7 +405,7 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
 
 
     // ── Audit Log ─────────────────────────────────────────────────────────────
-    Route::middleware('role:superadmin,ceo,manager')->prefix('audit-log')->name('audit.')->group(function () {
+    Route::middleware('role:superadmin,ceo,manager,officer')->prefix('audit-log')->name('audit.')->group(function () {
         Route::get('/', function (\Illuminate\Http\Request $request) {
             $query = \App\Models\AuditLog::with('user:id,name')
                 ->latest()
