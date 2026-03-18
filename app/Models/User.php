@@ -49,19 +49,19 @@ class User extends Authenticatable
     public function isAccountant(): bool  { return $this->role === 'accountant'; }
 
     /**
-     * Can approve loans (manager or above).
+     * Can approve loans (officer or above).
      */
     public function canApproveLoan(): bool
     {
-        return in_array($this->role, ['superadmin', 'ceo', 'manager']);
+        return in_array($this->role, ['superadmin', 'ceo', 'manager', 'officer']);
     }
 
     /**
-     * Can disburse funds (CEO or above).
+     * Can disburse funds (officer or above).
      */
     public function canDisburseFunds(): bool
     {
-        return in_array($this->role, ['superadmin', 'ceo']);
+        return in_array($this->role, ['superadmin', 'ceo', 'manager', 'officer']);
     }
 
     // ── Relationships ─────────────────────────────────────────────────────
