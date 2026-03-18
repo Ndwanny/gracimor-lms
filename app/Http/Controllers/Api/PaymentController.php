@@ -26,7 +26,6 @@ class PaymentController extends Controller
             'loan.borrower:id,borrower_number,first_name,last_name,phone_primary',
             'recordedBy:id,name',
             'paymentAllocations',
-            'loanSchedule:id,instalment_number',
         ])->latest('payment_date');
 
         if ($search = $request->search) {

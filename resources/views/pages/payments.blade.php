@@ -1479,7 +1479,7 @@ body { overflow-x: hidden; }
           officer:   p.recorded_by?.name || '—',
           ref:       p.reference || '',
           rawDate:   (p.payment_date || '').split('T')[0],
-          instalment: p.loan_schedule ? '#' + p.loan_schedule.instalment_number : '—',
+          instalment: '—',
           amountWords: '',
         };
       },
