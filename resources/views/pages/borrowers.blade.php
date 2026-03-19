@@ -934,10 +934,11 @@ body { overflow-x: hidden; }
             <option value="vehicle">Vehicle</option>
             <option value="land">Land</option>
           </select>
-          <select class="sel">
-            <option>All Officers</option>
-            <option>Mary Phiri</option>
-            <option>John Banda</option>
+          <select class="sel" x-model="fOfficer" @change="doFilter()">
+            <option value="">All Officers</option>
+            <template x-for="o in officers" :key="o.id">
+              <option :value="o.name" x-text="o.name"></option>
+            </template>
           </select>
         </div>
 
@@ -1650,7 +1651,8 @@ body { overflow-x: hidden; }
       view: 'list',
       ptab: 'loans',
       step: 1,
-      q: '', fStatus: '', fColl: '',
+      q: '', fStatus: '', fColl: '', fOfficer: '',
+      officers: [],
       sel: null,
       toast: false, toastMsg: '',
       rows: [], page: 1, perPage: 8, loading: false,
@@ -1699,7 +1701,17 @@ body { overflow-x: hidden; }
       ],
 
       async init() {
-        await Promise.all([this.loadStats(), this.loadBorrowers()]);
+        await Promise.all([this.loadStats(), this.loadBorrowers(), this.loadOfficers()]);
+      },
+
+      async loadOfficers() {
+        const token = localStorage.getItem('lms_token');
+        try {
+          const res = await fetch('/api/users?per_page=100', { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
+          if (!res.ok) return;
+          const data = await res.json();
+          this.officers = (data.data || []).filter(u => u.is_active && ['officer','manager','ceo','superadmin'].includes(u.role));
+        } catch {}
       },
 
       async loadStats() {
@@ -1768,9 +1780,10 @@ body { overflow-x: hidden; }
         const q = this.q.toLowerCase();
         this.rows = this.all.filter(b => {
           const mq = !q || b.name.toLowerCase().includes(q) || b.nrc.includes(q) || b.phone.includes(q) || (b.loan||'').toLowerCase().includes(q) || b.bnum.toLowerCase().includes(q);
-          const ms = !this.fStatus || b.status === this.fStatus;
-          const mc = !this.fColl   || b.coll   === this.fColl;
-          return mq && ms && mc;
+          const ms = !this.fStatus  || b.status  === this.fStatus;
+          const mc = !this.fColl    || b.coll    === this.fColl;
+          const mo = !this.fOfficer || b.officer === this.fOfficer;
+          return mq && ms && mc && mo;
         });
         this.page = 1;
       },
