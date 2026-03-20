@@ -92,7 +92,7 @@ class LoanController extends Controller
             'loan_product_id'      => 'nullable|exists:loan_products,id',
             'collateral_asset_id'  => 'required|exists:collateral_assets,id',
             'principal_amount'     => 'required|numeric|min:1000',
-            'term_months'          => 'required|integer|in:1,2,3,4',
+            'term_months'          => 'required|integer|in:1,2,3,4,6',
             'first_repayment_date' => 'required|date',
             'disbursement_method'  => 'required|in:cash,bank_transfer,mobile_money',
             'loan_purpose'         => 'nullable|string|max:500',

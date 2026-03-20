@@ -22,6 +22,7 @@ class LoanCalculatorService
         2 => 18.0,
         3 => 28.0,
         4 => 38.0,
+        6 => 48.0,
     ];
 
     /**
@@ -31,7 +32,7 @@ class LoanCalculatorService
     public function rateForTerm(int $months): float
     {
         if (!isset(self::TERM_RATES[$months])) {
-            throw new \InvalidArgumentException("Invalid loan term: {$months}. Allowed: 1, 2, 3, 4 months.");
+            throw new \InvalidArgumentException("Invalid loan term: {$months}. Allowed: 1, 2, 3, 4, 6 months.");
         }
         return self::TERM_RATES[$months];
     }

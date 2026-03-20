@@ -1903,11 +1903,12 @@ html, body { overflow-x: hidden; max-width: 100%; }
                     <option value="2">2 Months — 18% flat</option>
                     <option value="3">3 Months — 28% flat</option>
                     <option value="4">4 Months — 38% flat</option>
+                    <option value="6">6 Months — 48% flat</option>
                   </select>
                 </div>
                 <div class="field" x-show="f.term">
                   <label>Interest Rate</label>
-                  <div class="finput" style="background:rgba(11,143,172,.08);color:var(--teal-lt);cursor:default" x-text="f.term ? ({1:'10%',2:'18%',3:'28%',4:'38%'}[f.term] || '—') + ' flat (fixed for this term)' : '—'"></div>
+                  <div class="finput" style="background:rgba(11,143,172,.08);color:var(--teal-lt);cursor:default" x-text="f.term ? ({1:'10%',2:'18%',3:'28%',4:'38%',6:'48%'}[f.term] || '—') + ' flat (fixed for this term)' : '—'"></div>
                 </div>
                 <div class="field">
                   <label>Processing Fee (K)</label>
@@ -2618,7 +2619,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       },
 
       calcLoan() {
-        const RATES = { 1: 10, 2: 18, 3: 28, 4: 38 };
+        const RATES = { 1: 10, 2: 18, 3: 28, 4: 38, 6: 48 };
         const P = parseFloat(this.f.amount) || 0;
         const n = parseInt(this.f.term)     || 0;
         const r = RATES[n] || 0;
@@ -2732,7 +2733,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
       openSettle() {
         if (!this.sel) return;
-        const RATES = {1:10, 2:18, 3:28, 4:38};
+        const RATES = {1:10, 2:18, 3:28, 4:38, 6:48};
 
         const principal    = this.sel.balPrincipalDisbursed || this.sel.rawPrincipal;
         const termMonths   = this.sel.rawTerm;
