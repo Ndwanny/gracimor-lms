@@ -1563,7 +1563,7 @@ body { overflow-x: hidden; }
           <div class="card animate delay-3">
             <div class="card-header">
               <span class="card-title">Pending Approvals</span>
-              <span class="badge badge-pending">4 loans</span>
+              <span class="badge badge-pending" x-text="pendingApprovals.length + (pendingApprovals.length === 1 ? ' loan' : ' loans')">— loans</span>
             </div>
             <div class="card-body" style="padding-top:8px;padding-bottom:8px">
               <template x-for="loan in pendingApprovals" :key="loan.id">
