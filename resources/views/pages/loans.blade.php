@@ -2304,6 +2304,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
           <div class="xs tg f6" x-text="'✓ Pay ' + settle.amount + ' to close this loan early. The client saves ' + settle.discount + ' compared to the original ' + settle.originalRate + '% rate.'"></div>
         </div>
 
+        <!-- Settlement date — drives effective months calculation -->
+        <div class="field mt12">
+          <label style="font-size:12px;color:var(--slate-lt);font-weight:600">Settlement Date <span class="req">*</span></label>
+          <input type="date" class="fsel" x-model="settleDate" @change="openSettle()" style="margin-top:6px">
+          <div style="font-size:11px;color:var(--slate);margin-top:4px">Date the client is making payment — determines which month tier applies.</div>
+        </div>
+
         <!-- Payment method -->
         <div class="field mt12">
           <label style="font-size:12px;color:var(--slate-lt);font-weight:600">Payment Method <span class="req">*</span></label>
@@ -2335,7 +2342,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       disburseDate: '', disburseMethod: 'Cash', disburseRef: '', disburseNotes: '',
       rejectReason: '', rejectNotes: '',
       toast: false, toastMsg: '', toastColor: 'var(--green)',
-      settle: {}, settleMethod: 'cash',
+      settle: {}, settleMethod: 'cash', settleDate: '',
 
       // ── e-Signature state ──────────────────────────────────────────────
       borrowerSigPad: null, officerSigPad: null,
@@ -2735,17 +2742,20 @@ html, body { overflow-x: hidden; max-width: 100%; }
         if (!this.sel) return;
         const RATES = {1:10, 2:18, 3:28, 4:38, 6:48};
 
+        // Set default settlement date to today the first time modal opens
+        if (!this.settleDate) this.settleDate = new Date().toISOString().slice(0, 10);
+
         const principal    = this.sel.balPrincipalDisbursed || this.sel.rawPrincipal;
         const termMonths   = this.sel.rawTerm;
         const originalRate = RATES[termMonths] || this.sel.rawRate;
         const originalInterest = Math.round(principal * (originalRate / 100) * 100) / 100;
 
-        // Effective months = the instalment period today falls in.
-        // Find the first schedule row whose due date is >= today.
+        // Effective months = instalment period the settlement date falls in.
+        // Find first schedule row whose due_date >= settlement date.
         // That row's instalment number = effective months (same logic as backend).
-        const today = new Date().toISOString().slice(0, 10);
+        const sDate    = this.settleDate;
         const schedule = this.sel.schedule || [];
-        const nextRow  = schedule.find(r => r.dueRaw && r.dueRaw >= today);
+        const nextRow  = schedule.find(r => r.dueRaw && r.dueRaw >= sDate);
         const effectiveMonths = nextRow
           ? Math.min(nextRow.n, termMonths)
           : termMonths;   // settling after all due dates → full term
@@ -2774,6 +2784,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
           amountRaw:        settlementAmount,
         };
         this.settleMethod = 'cash';
+        this.settleDate   = new Date().toISOString().slice(0, 10);
         this.modal = 'settle';
       },
 
@@ -2787,7 +2798,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
             headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
             body: JSON.stringify({
               payment_method: this.settleMethod,
-              payment_date:   new Date().toISOString().slice(0, 10),
+              payment_date:   this.settleDate || new Date().toISOString().slice(0, 10),
             }),
           });
           const data = await res.json();
