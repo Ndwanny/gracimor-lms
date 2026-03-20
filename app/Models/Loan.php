@@ -92,12 +92,12 @@ class Loan extends Model
 
     public function canRecordPayment(): bool
     {
-        return $this->isActive();
+        return in_array($this->status, ['active', 'overdue']);
     }
 
     public function canEarlySettle(): bool
     {
-        return $this->isActive()
+        return in_array($this->status, ['active', 'overdue'])
             && ! $this->is_early_settled
             && $this->product->allow_early_settlement;
     }

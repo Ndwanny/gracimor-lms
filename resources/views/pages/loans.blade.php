@@ -2798,7 +2798,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
             'var(--green)'
           );
           // Reload the loan detail to reflect closed status
-          if (this.sel) await this.openLoan(this.sel);
+          if (this.sel) await this.open(this.sel);
           await this.loadLoans();
         } catch { this.showToast('Network error during settlement.', 'var(--red)'); }
       },
@@ -3041,7 +3041,7 @@ body{font-family:Georgia,'Times New Roman',serif;background:#fff;color:#111;font
         const settleId = params.get('settle');
         if (settleId) {
           const target = this.loans.find(l => String(l.id) === String(settleId));
-          if (target) { this.openDetail(target); this.$nextTick(() => this.openSettle()); }
+          if (target) { await this.open(target); this.openSettle(); }
           window.history.replaceState({}, '', '/loans');
         }
       },
