@@ -2539,6 +2539,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
             officer: d.applied_by?.name || '—',
             date: this._fmtDate(d.created_at),
             disburseDate: d.disbursed_at ? this._fmtDate(d.disbursed_at) : null,
+            disburseRaw:  d.disbursed_at ? d.disbursed_at.slice(0, 10) : null,
+            firstRepayRaw: d.first_repayment_date ? d.first_repayment_date.slice(0, 10) : null,
             maturity: d.maturity_date ? this._fmtDate(d.maturity_date) : null,
             owed: bal?.total_outstanding ? this._fmtK(bal.total_outstanding) : null,
             paid: totalPaid > 0 ? this._fmtK(totalPaid) : 'K 0',
@@ -2755,14 +2757,27 @@ html, body { overflow-x: hidden; max-width: 100%; }
         const originalRate = RATES[termMonths] || this.sel.rawRate;
         const originalInterest = Math.round(principal * (originalRate / 100) * 100) / 100;
 
-        // Effective months = instalment period the settlement date falls in.
-        // Find first schedule row whose due_date >= settlement date.
-        // That row's instalment number = effective months (same logic as backend).
+        // Effective months — try schedule first (exact match with backend logic),
+        // fall back to date arithmetic from disbursement date.
+        let effectiveMonths = termMonths;
         const schedule = this.sel.schedule || [];
-        const nextRow  = schedule.find(r => r.dueRaw && r.dueRaw >= this.settleDate);
-        const effectiveMonths = nextRow
-          ? Math.min(nextRow.n, termMonths)
-          : termMonths;   // settling after all due dates → full term
+        if (schedule.length > 0) {
+          // Mirror backend: first schedule row whose due_date >= settleDate
+          const nextRow = schedule.find(r => r.dueRaw && r.dueRaw.slice(0,10) >= this.settleDate);
+          effectiveMonths = nextRow ? Math.min(nextRow.n, termMonths) : termMonths;
+        } else if (this.sel.firstRepayRaw) {
+          // Fallback: which instalment period does settleDate fall in?
+          // Build virtual due dates: firstRepay, firstRepay+1m, firstRepay+2m, ...
+          const base = new Date(this.sel.firstRepayRaw);
+          effectiveMonths = termMonths;
+          for (let i = 0; i < termMonths; i++) {
+            const due = new Date(base.getFullYear(), base.getMonth() + i, base.getDate());
+            if (this.settleDate <= due.toISOString().slice(0, 10)) {
+              effectiveMonths = Math.min(i + 1, termMonths);
+              break;
+            }
+          }
+        }
 
         const tieredRate       = RATES[effectiveMonths] ?? originalRate;
         const newTotalInterest = Math.round(principal * (tieredRate / 100) * 100) / 100;
