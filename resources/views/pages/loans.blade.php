@@ -2307,7 +2307,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <!-- Settlement date — drives effective months calculation -->
         <div class="field mt12">
           <label style="font-size:12px;color:var(--slate-lt);font-weight:600">Settlement Date <span class="req">*</span></label>
-          <input type="date" class="fsel" x-model="settleDate" @change="openSettle()" style="margin-top:6px">
+          <input type="date" class="fsel" x-model="settleDate" @change="calcSettle()" style="margin-top:6px">
           <div style="font-size:11px;color:var(--slate);margin-top:4px">Date the client is making payment — determines which month tier applies.</div>
         </div>
 
@@ -2740,10 +2740,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
       openSettle() {
         if (!this.sel) return;
-        const RATES = {1:10, 2:18, 3:28, 4:38, 6:48};
+        this.settleMethod = 'cash';
+        this.settleDate   = new Date().toISOString().slice(0, 10);
+        this.calcSettle();
+        this.modal = 'settle';
+      },
 
-        // Set default settlement date to today the first time modal opens
-        if (!this.settleDate) this.settleDate = new Date().toISOString().slice(0, 10);
+      calcSettle() {
+        if (!this.sel || !this.settleDate) return;
+        const RATES = {1:10, 2:18, 3:28, 4:38, 6:48};
 
         const principal    = this.sel.balPrincipalDisbursed || this.sel.rawPrincipal;
         const termMonths   = this.sel.rawTerm;
@@ -2753,9 +2758,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
         // Effective months = instalment period the settlement date falls in.
         // Find first schedule row whose due_date >= settlement date.
         // That row's instalment number = effective months (same logic as backend).
-        const sDate    = this.settleDate;
         const schedule = this.sel.schedule || [];
-        const nextRow  = schedule.find(r => r.dueRaw && r.dueRaw >= sDate);
+        const nextRow  = schedule.find(r => r.dueRaw && r.dueRaw >= this.settleDate);
         const effectiveMonths = nextRow
           ? Math.min(nextRow.n, termMonths)
           : termMonths;   // settling after all due dates → full term
@@ -2783,9 +2787,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
           amount:           this._fmtK(settlementAmount),
           amountRaw:        settlementAmount,
         };
-        this.settleMethod = 'cash';
-        this.settleDate   = new Date().toISOString().slice(0, 10);
-        this.modal = 'settle';
       },
 
       async doSettle() {
