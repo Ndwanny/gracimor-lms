@@ -3040,7 +3040,7 @@ body{font-family:Georgia,'Times New Roman',serif;background:#fff;color:#111;font
         const params = new URLSearchParams(window.location.search);
         const settleId = params.get('settle');
         if (settleId) {
-          const target = this.loans.find(l => String(l.id) === String(settleId));
+          const target = this._allLoans.find(l => String(l.id) === String(settleId));
           if (target) { await this.open(target); this.openSettle(); }
           window.history.replaceState({}, '', '/loans');
         }
