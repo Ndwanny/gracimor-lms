@@ -2268,14 +2268,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <button class="btn-g btn-sm" @click="modal=null">✕</button>
       </div>
       <div class="modal-body">
-        <div style="background:#1e293b;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;font-size:11px;font-family:monospace;color:#fde68a;margin-bottom:10px">
-          <div>settleDate: <span x-text="settleDate"></span></div>
-          <div>firstRepayRaw: <span x-text="sel?.firstRepayRaw||'NULL'"></span></div>
-          <div>schedule rows: <span x-text="sel?.schedule?.length||0"></span></div>
-          <div>row[0].dueRaw: <span x-text="sel?.schedule?.[0]?.dueRaw||'NULL'"></span></div>
-          <div>effectiveMonths: <span x-text="settle.effectiveMonths"></span></div>
-        </div>
-        <div class="xs ts mb16">The original rate is discarded. Interest is recalculated from scratch using the rate that matches how many months the client actually held the loan.</div>
+<div class="xs ts mb16">The original rate is discarded. Interest is recalculated from scratch using the rate that matches how many months the client actually held the loan.</div>
         <div class="settle-box mb16">
           <!-- Step 1: New interest calculation -->
           <div class="settle-row"><div class="settle-lbl">Principal</div><div class="settle-val" x-text="settle.principal"></div></div>
@@ -2549,8 +2542,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
             officer: d.applied_by?.name || '—',
             date: this._fmtDate(d.created_at),
             disburseDate: d.disbursed_at ? this._fmtDate(d.disbursed_at) : null,
-            disburseRaw:  d.disbursed_at ? d.disbursed_at.slice(0, 10) : null,
-            firstRepayRaw: d.first_repayment_date ? d.first_repayment_date.slice(0, 10) : null,
+            disburseRaw:  d.disbursed_at || null,
+            firstRepayRaw: d.first_repayment_date || null,
             maturity: d.maturity_date ? this._fmtDate(d.maturity_date) : null,
             owed: bal?.total_outstanding ? this._fmtK(bal.total_outstanding) : null,
             paid: totalPaid > 0 ? this._fmtK(totalPaid) : 'K 0',
@@ -2769,7 +2762,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
         // Effective months — YYYYMMDD integer comparison: completely timezone-free.
         // toYMD converts any date string (YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS, etc) to integer.
-        const toYMD = s => { const p=(s||'').slice(0,10).split('-'); return p.length===3?parseInt(p[0])*10000+parseInt(p[1])*100+parseInt(p[2]):0; };
+        // toYMD: converts any date string to YYYYMMDD integer using LOCAL date.
+        // For ISO timestamps (length>10), parse via new Date() so UTC offset is
+        // applied — e.g. '2025-11-27T22:00:00Z' in UTC+2 = local Nov 28 = 20251128.
+        // For plain YYYY-MM-DD strings, parse directly (avoids new Date() UTC midnight shift).
+        const toYMD = s => {
+          if (!s) return 0;
+          if (s.length > 10) { const d=new Date(s); return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(); }
+          const p=s.split('-'); return p.length===3?parseInt(p[0])*10000+parseInt(p[1])*100+parseInt(p[2]):0;
+        };
         const sYMD = toYMD(this.settleDate);
         let effectiveMonths = termMonths;
         const schedule = this.sel.schedule || [];
@@ -2778,8 +2779,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
           const nextRow = schedule.find(r => r.dueRaw && toYMD(r.dueRaw) >= sYMD);
           effectiveMonths = nextRow ? Math.min(nextRow.n, termMonths) : termMonths;
         } else if (this.sel.firstRepayRaw) {
-          // Fallback: build virtual due dates as integers — no Date objects, no timezone
-          const [fy, fm, fd] = this.sel.firstRepayRaw.split('-').map(Number);
+          // Fallback: build virtual due dates from first repayment date
+          const baseYMD = toYMD(this.sel.firstRepayRaw);
+          const fy = Math.floor(baseYMD/10000), fm = Math.floor((baseYMD%10000)/100), fd = baseYMD%100;
           for (let i = 0; i < termMonths; i++) {
             let y = fy, m = fm - 1 + i;
             y += Math.floor(m / 12); m = m % 12;
