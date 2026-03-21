@@ -195,10 +195,13 @@ class PaymentService
             $settlementAmount = max(0, round($loanPrincipal + $newTotalInterest - $totalAlreadyPaid, 2));
 
             // ── Align balance so the allocation engine can zero it correctly ──────
-            // Reduce interest_charged to the re-tiered amount so recalculate() yields
-            // the correct interest_outstanding after the payment is applied.
+            // Reduce interest_charged, interest_outstanding and total_outstanding to
+            // the re-tiered amount so record() reads the correct balance_before and
+            // balance_after = 0 on the receipt.
             if ($interestDiscount > 0) {
-                $balance->interest_charged = max(0, (float) $balance->interest_charged - $interestDiscount);
+                $balance->interest_charged     = max(0, (float) $balance->interest_charged     - $interestDiscount);
+                $balance->interest_outstanding = max(0, (float) $balance->interest_outstanding - $interestDiscount);
+                $balance->total_outstanding    = max(0, (float) $balance->total_outstanding    - $interestDiscount);
                 $balance->save();
             }
 
