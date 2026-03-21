@@ -2743,7 +2743,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       openSettle() {
         if (!this.sel) return;
         this.settleMethod = 'cash';
-        this.settleDate   = new Date().toISOString().slice(0, 10);
+        const _td = new Date(); this.settleDate = _td.getFullYear()+'-'+String(_td.getMonth()+1).padStart(2,'0')+'-'+String(_td.getDate()).padStart(2,'0');
         this.calcSettle();
         this.modal = 'settle';
       },
@@ -2766,16 +2766,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
           const nextRow = schedule.find(r => r.dueRaw && r.dueRaw.slice(0,10) >= this.settleDate);
           effectiveMonths = nextRow ? Math.min(nextRow.n, termMonths) : termMonths;
         } else if (this.sel.firstRepayRaw) {
-          // Fallback: which instalment period does settleDate fall in?
-          // Build virtual due dates: firstRepay, firstRepay+1m, firstRepay+2m, ...
-          const base = new Date(this.sel.firstRepayRaw);
+          // Fallback: build virtual due dates using string arithmetic (no toISOString — timezone-safe)
+          const [fy, fm, fd] = this.sel.firstRepayRaw.split('-').map(Number);
           effectiveMonths = termMonths;
           for (let i = 0; i < termMonths; i++) {
-            const due = new Date(base.getFullYear(), base.getMonth() + i, base.getDate());
-            if (this.settleDate <= due.toISOString().slice(0, 10)) {
-              effectiveMonths = Math.min(i + 1, termMonths);
-              break;
-            }
+            let y = fy, m = fm - 1 + i;
+            y += Math.floor(m / 12); m = m % 12;
+            const dueStr = y+'-'+String(m+1).padStart(2,'0')+'-'+String(fd).padStart(2,'0');
+            if (this.settleDate <= dueStr) { effectiveMonths = Math.min(i + 1, termMonths); break; }
           }
         }
 
