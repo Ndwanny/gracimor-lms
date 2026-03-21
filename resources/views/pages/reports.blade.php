@@ -930,21 +930,23 @@ body { overflow-x: hidden; max-width: 100vw; }
 
           <div x-show="rt!=='statement'">
             <label class="form-label">Loan Officer</label>
-            <select class="form-select">
-              <option>All Officers</option>
-              <option>F. Mwala</option>
-              <option>C. Banda</option>
-              <option>N. Tembo</option>
+            <select class="form-select" x-model="fOfficer">
+              <option value="">All Officers</option>
+              <template x-for="o in staffOfficers" :key="o.id">
+                <option :value="o.id" x-text="o.name"></option>
+              </template>
             </select>
           </div>
 
           <div x-show="rt==='portfolio' || rt==='loanbook'">
             <label class="form-label">Loan Status</label>
-            <select class="form-select">
-              <option>All Statuses</option>
-              <option>Active Only</option>
-              <option>Closed Only</option>
-              <option>Active + Overdue</option>
+            <select class="form-select" x-model="fStatus">
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="overdue">Overdue</option>
+              <option value="active,overdue">Active + Overdue</option>
+              <option value="closed">Closed</option>
+              <option value="pending">Pending Approval</option>
             </select>
           </div>
 
@@ -1003,7 +1005,7 @@ body { overflow-x: hidden; max-width: 100vw; }
                 <div class="rh-sub" x-text="'Consolidated performance — all active loans · ' + thisMonthFull"></div>
                 <div class="rh-meta">
                   <span class="rh-tag" x-text="thisMonthShort"></span>
-                  <span class="rh-tag">All Officers</span>
+                  <span class="rh-tag" x-text="fOfficer ? (staffOfficers.find(o=>o.id==fOfficer)?.name||'Officer') : 'All Officers'"></span>
                   <span class="rh-tag" x-text="'Generated ' + todayShort"></span>
                 </div>
               </div>
@@ -1543,6 +1545,7 @@ function app(){
     rt:'portfolio', period:'this_month', borrower:'', running:false, generated:false, toasts:[],
     thisMonthFull:'', thisMonthShort:'', lastMonthLabel:'', thisQLabel:'', lastQLabel:'',
     ytdLabel:'', lastYearLabel:'', todayShort:'', collectionPeriod:'', customFrom:'', customTo:'',
+    fOfficer:'', fStatus:'', staffOfficers:[],
 
     chartBars: [],
     productRows: [],
@@ -1585,7 +1588,7 @@ function app(){
       this.collectionPeriod = '01–'+now.getDate()+' '+S[mo]+' '+yr;
       this.customFrom = yr+'-'+pad(mo+1)+'-01';
       this.customTo = yr+'-'+pad(mo+1)+'-'+pad(now.getDate());
-      await Promise.all([this.loadLoanBook(), this.loadRecentReceipts(), this.loadLoanList()]);
+      await Promise.all([this.loadLoanBook(), this.loadRecentReceipts(), this.loadLoanList(), this.loadStaffOfficers()]);
     },
 
     _rptAvatar(name) {
@@ -1611,7 +1614,9 @@ function app(){
     async loadLoanBook() {
       const token = localStorage.getItem('lms_token');
       try {
-        const res = await fetch('/api/reports/loan-book?per_page=200', {
+        const offQ = this.fOfficer ? `&officer_id=${this.fOfficer}` : '';
+        const stQ  = this.fStatus  ? `&status=${this.fStatus}`        : '';
+        const res = await fetch(`/api/reports/loan-book?per_page=200${offQ}${stQ}`, {
           headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
         });
         if (!res.ok) return;
@@ -1740,10 +1745,21 @@ function app(){
       } catch(e) { console.error('Loan list error:', e); }
     },
 
+    async loadStaffOfficers() {
+      const token = localStorage.getItem('lms_token');
+      try {
+        const res = await fetch('/api/users?per_page=100', { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+        if (!res.ok) return;
+        const d = await res.json();
+        this.staffOfficers = (d.data || []).filter(u => u.is_active && ['officer','manager','ceo','superadmin'].includes(u.role));
+      } catch(e) { console.error('loadStaffOfficers', e); }
+    },
+
     async loadPortfolio() {
       const token = localStorage.getItem('lms_token');
       const { dateFrom, dateTo } = this._periodDates();
-      const res = await fetch(`/api/reports/portfolio?date_from=${dateFrom}&date_to=${dateTo}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+      const offQ = this.fOfficer ? `&officer_id=${this.fOfficer}` : '';
+      const res = await fetch(`/api/reports/portfolio?date_from=${dateFrom}&date_to=${dateTo}${offQ}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
       if (!res.ok) throw new Error('Portfolio API failed');
       const d = await res.json();
       const k = d.kpis || {}, port = Math.max(k.total_outstanding||0, 1);
@@ -1795,7 +1811,8 @@ function app(){
     async loadCollections() {
       const token = localStorage.getItem('lms_token');
       const { dateFrom, dateTo } = this._periodDates();
-      const res = await fetch(`/api/reports/collections?date_from=${dateFrom}&date_to=${dateTo}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
+      const offQ = this.fOfficer ? `&officer_id=${this.fOfficer}` : '';
+      const res = await fetch(`/api/reports/collections?date_from=${dateFrom}&date_to=${dateTo}${offQ}`, { headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/json' } });
       if (!res.ok) throw new Error('Collections API failed');
       const d = await res.json();
       const pt = d.payment_totals || {};
