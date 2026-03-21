@@ -3,6 +3,8 @@
 <head>
   <script>if(!localStorage.getItem("lms_token")){window.location.replace("/login");}</script>
   <meta charset="UTF-8"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gracimor LMS — Loans</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2258,6 +2260,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   </div>
 
   <!-- Early Settlement Modal -->
+  <div x-effect="modal==='settle' && settleDate && sel && calcSettle()"></div>
   <div class="modal-overlay" x-show="modal==='settle'" x-transition style="display:none" @click.self="modal=null">
     <div class="modal">
       <div class="modal-hd">
@@ -2307,7 +2310,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <!-- Settlement date — drives effective months calculation -->
         <div class="field mt12">
           <label style="font-size:12px;color:var(--slate-lt);font-weight:600">Settlement Date <span class="req">*</span></label>
-          <input type="date" class="fsel" x-model="settleDate" @input="calcSettle()" @change="calcSettle()" style="margin-top:6px">
+          <input type="date" class="fsel" x-model="settleDate" style="margin-top:6px">
           <div style="font-size:11px;color:var(--slate);margin-top:4px">Date the client is making payment — determines which month tier applies.</div>
         </div>
 
