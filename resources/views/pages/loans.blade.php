@@ -2268,6 +2268,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <button class="btn-g btn-sm" @click="modal=null">✕</button>
       </div>
       <div class="modal-body">
+        <div style="background:#1e293b;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;font-size:11px;font-family:monospace;color:#fde68a;margin-bottom:10px">
+          <div>settleDate: <span x-text="settleDate"></span></div>
+          <div>firstRepayRaw: <span x-text="sel?.firstRepayRaw||'NULL'"></span></div>
+          <div>schedule rows: <span x-text="sel?.schedule?.length||0"></span></div>
+          <div>row[0].dueRaw: <span x-text="sel?.schedule?.[0]?.dueRaw||'NULL'"></span></div>
+          <div>effectiveMonths: <span x-text="settle.effectiveMonths"></span></div>
+        </div>
         <div class="xs ts mb16">The original rate is discarded. Interest is recalculated from scratch using the rate that matches how many months the client actually held the loan.</div>
         <div class="settle-box mb16">
           <!-- Step 1: New interest calculation -->
