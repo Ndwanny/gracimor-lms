@@ -2307,7 +2307,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <!-- Settlement date — drives effective months calculation -->
         <div class="field mt12">
           <label style="font-size:12px;color:var(--slate-lt);font-weight:600">Settlement Date <span class="req">*</span></label>
-          <input type="date" class="fsel" x-model="settleDate" @change="calcSettle()" style="margin-top:6px">
+          <input type="date" class="fsel" x-model="settleDate" @input="calcSettle()" @change="calcSettle()" style="margin-top:6px">
           <div style="font-size:11px;color:var(--slate);margin-top:4px">Date the client is making payment — determines which month tier applies.</div>
         </div>
 
@@ -2757,23 +2757,24 @@ html, body { overflow-x: hidden; max-width: 100%; }
         const originalRate = RATES[termMonths] || this.sel.rawRate;
         const originalInterest = Math.round(principal * (originalRate / 100) * 100) / 100;
 
-        // Effective months — try schedule first (exact match with backend logic),
-        // fall back to date arithmetic from disbursement date.
+        // Effective months — YYYYMMDD integer comparison: completely timezone-free.
+        // toYMD converts any date string (YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS, etc) to integer.
+        const toYMD = s => { const p=(s||'').slice(0,10).split('-'); return p.length===3?parseInt(p[0])*10000+parseInt(p[1])*100+parseInt(p[2]):0; };
+        const sYMD = toYMD(this.settleDate);
         let effectiveMonths = termMonths;
         const schedule = this.sel.schedule || [];
         if (schedule.length > 0) {
-          // Mirror backend: first schedule row whose due_date >= settleDate
-          const nextRow = schedule.find(r => r.dueRaw && r.dueRaw.slice(0,10) >= this.settleDate);
+          // Mirror backend: first schedule row whose due_date >= settlement date
+          const nextRow = schedule.find(r => r.dueRaw && toYMD(r.dueRaw) >= sYMD);
           effectiveMonths = nextRow ? Math.min(nextRow.n, termMonths) : termMonths;
         } else if (this.sel.firstRepayRaw) {
-          // Fallback: build virtual due dates using string arithmetic (no toISOString — timezone-safe)
+          // Fallback: build virtual due dates as integers — no Date objects, no timezone
           const [fy, fm, fd] = this.sel.firstRepayRaw.split('-').map(Number);
-          effectiveMonths = termMonths;
           for (let i = 0; i < termMonths; i++) {
             let y = fy, m = fm - 1 + i;
             y += Math.floor(m / 12); m = m % 12;
-            const dueStr = y+'-'+String(m+1).padStart(2,'0')+'-'+String(fd).padStart(2,'0');
-            if (this.settleDate <= dueStr) { effectiveMonths = Math.min(i + 1, termMonths); break; }
+            const dueYMD = y*10000 + (m+1)*100 + fd;
+            if (sYMD <= dueYMD) { effectiveMonths = Math.min(i+1, termMonths); break; }
           }
         }
 
