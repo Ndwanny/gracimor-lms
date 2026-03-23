@@ -1234,6 +1234,7 @@ body { overflow-x: hidden; }
           <button class="notif-btn" @click="showNotifs=!showNotifs">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <div class="notif-dot" x-show="notifications.some(n=>n.unread)"></div>
+            <span x-show="notifications.filter(n=>n.unread).length > 0" x-text="notifications.filter(n=>n.unread).length" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;line-height:1.4;pointer-events:none"></span>
           </button>
           <div class="notif-panel" x-show="showNotifs" x-transition style="display:none">
             <div class="notif-panel-hd">
@@ -1784,14 +1785,43 @@ body { overflow-x: hidden; }
             });
           }
 
-          // Build notifications from overdue + recent payments
+          // Build notifications — today's activity first, then overdue alerts
           const notifs = [];
+          const todayStr = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+
+          // 1. Repayments due TODAY (days_overdue === 0, not paid)
+          const dueTodayOnly = this.dueToday.filter(s => (parseInt(s.days_overdue)||0) === 0 && s.status !== 'paid');
+          if (dueTodayOnly.length > 0) {
+            dueTodayOnly.slice(0, 5).forEach((s, i) => {
+              notifs.push({ id: 'dt'+i, icon: '📅', bg: 'rgba(245,158,11,.15)', msg: `<strong>Repayment due today</strong> — ${s.borrower} (${s.loan_number}) instalment #${s.instalment_number}, <strong>K ${(parseFloat(s.total_due)||0).toLocaleString()}</strong>`, time: 'Today', unread: true });
+            });
+            if (dueTodayOnly.length > 5) {
+              notifs.push({ id: 'dt_more', icon: '📅', bg: 'rgba(245,158,11,.10)', msg: `<strong>${dueTodayOnly.length - 5} more repayments</strong> due today — <a href="/payments" style="color:var(--teal)">view payments</a>`, time: 'Today', unread: true });
+            }
+          }
+
+          // 2. Payments recorded today
+          const todayPayments = this.recentPayments.filter(p => p.time === todayStr || p.time === new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}).slice(0,5) || (p.time && p.time.includes(':')) );
+          todayPayments.slice(0, 3).forEach((p, i) => {
+            notifs.push({ id: 'py'+i, icon: '💰', bg: 'rgba(34,197,94,.12)', msg: `<strong>${p.amount}</strong> ${p.type} received from <strong>${p.name}</strong> (${p.loan})`, time: p.time, unread: i === 0 });
+          });
+
+          // 3. Pending approvals awaiting action
+          if (this.pendingApprovals.length > 0) {
+            notifs.push({ id: 'pend0', icon: '📋', bg: 'rgba(124,111,247,.15)', msg: `<strong>${this.pendingApprovals.length} loan${this.pendingApprovals.length===1?'':'s'} pending approval</strong> — ${this.pendingApprovals.map(l=>l.name).slice(0,2).join(', ')}${this.pendingApprovals.length>2?' +more':''}`, time: 'Today', unread: true });
+          }
+
+          // 4. Overdue alerts
           this.overdueClients.slice(0, 2).forEach((c, i) => {
-            notifs.push({ id: 'ov'+i, icon: '⚠️', bg: 'rgba(239,68,68,.15)', msg: `<strong>${c.name}</strong> is ${c.days} days overdue — ${c.amount} outstanding.`, time: 'Today', unread: true });
+            notifs.push({ id: 'ov'+i, icon: '⚠️', bg: 'rgba(239,68,68,.15)', msg: `<strong>${c.name}</strong> is ${c.days} days overdue — ${c.amount} outstanding.`, time: 'Today', unread: false });
           });
-          this.recentPayments.slice(0, 2).forEach((p, i) => {
-            notifs.push({ id: 'py'+i, icon: '💰', bg: 'rgba(11,143,172,.15)', msg: `<strong>${p.amount}</strong> ${p.type} payment from ${p.name} (${p.loan}).`, time: p.time, unread: i === 0 });
-          });
+
+          // 5. Past-due instalments summary
+          const pastDueCount = this.stats.past_due?.count || 0;
+          if (pastDueCount > 0) {
+            notifs.push({ id: 'pd0', icon: '🔴', bg: 'rgba(185,28,28,.12)', msg: `<strong>${pastDueCount} past-due instalment${pastDueCount===1?'':'s'}</strong> unpaid — ${this.fmtK(this.stats.past_due?.expected||0)} outstanding. <a href="/overdue?tab=past_due" style="color:var(--teal)">View →</a>`, time: 'Today', unread: pastDueCount > 0 });
+          }
+
           this.notifications = notifs;
         } catch(e) { console.error('Dashboard widget error:', e); }
       },
