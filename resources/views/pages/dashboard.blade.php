@@ -1269,7 +1269,7 @@ body { overflow-x: hidden; }
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <strong x-text="(stats.overdue?.total_loans ?? 0) + ' loan' + ((stats.overdue?.total_loans ?? 0) === 1 ? '' : 's') + ' overdue'">— loans overdue</strong>
         &mdash; <span x-text="fmtK(stats.overdue?.total_arrears ?? 0)">K —</span> in outstanding arrears.
-        <a href="/overdue" style="color:var(--red);text-decoration:underline;margin-left:6px">View overdue clients →</a>
+        <a href="/overdue?tab=loans" style="color:var(--red);text-decoration:underline;margin-left:6px">View overdue clients →</a>
       </div>
 
       <div class="alert-bar warning animate delay-1" style="margin-bottom:8px" x-show="(stats.due_today?.count ?? 0) > 0">
@@ -1432,7 +1432,7 @@ body { overflow-x: hidden; }
                 </div>
               </div>
             </template>
-            <button class="btn-ghost" style="width:100%;margin-top:12px;justify-content:center" @click="window.location.href='/overdue'" x-text="'View All ' + ((stats.due_today?.count??0)+(stats.past_due?.count??0)) + ' →'">View All →</button>
+            <button class="btn-ghost" style="width:100%;margin-top:12px;justify-content:center" @click="window.location.href='/overdue?tab=past_due'" x-text="'View All ' + ((stats.due_today?.count??0)+(stats.past_due?.count??0)) + ' →'">View All →</button>
           </div>
         </div>
 
@@ -1522,7 +1522,7 @@ body { overflow-x: hidden; }
         <div class="card animate delay-2">
           <div class="card-header">
             <span class="card-title">Recent Payments</span>
-            <button class="btn-ghost" style="font-size:11px;padding:5px 10px" @click="window.location.href='/overdue'">View All</button>
+            <button class="btn-ghost" style="font-size:11px;padding:5px 10px" @click="window.location.href='/payments'">View All</button>
           </div>
           <div style="overflow-x:auto">
             <table class="data-table">
