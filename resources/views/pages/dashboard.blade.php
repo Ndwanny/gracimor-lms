@@ -1276,7 +1276,7 @@ body { overflow-x: hidden; }
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <strong x-text="(stats.due_today?.count ?? 0) + ' repayment' + ((stats.due_today?.count ?? 0) === 1 ? '' : 's') + ' due today'">— due today</strong>
         &mdash; <span x-text="fmtK(stats.due_today?.expected ?? 0)">K —</span> expected.
-        <a href="/payments" style="color:var(--amber);text-decoration:underline;margin-left:6px">View →</a>
+        <a href="/calendar" style="color:var(--amber);text-decoration:underline;margin-left:6px">View →</a>
       </div>
       <div class="alert-bar danger animate delay-1" style="margin-bottom:24px" x-show="(stats.past_due?.count ?? 0) > 0">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
