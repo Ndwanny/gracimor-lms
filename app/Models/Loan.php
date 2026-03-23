@@ -138,9 +138,7 @@ class Loan extends Model
 
     public function scopeOverdue($query)
     {
-        return $query->whereHas('schedule', function ($q) {
-            $q->where('status', 'overdue');
-        });
+        return $query->where('loans.status', 'overdue');
     }
 
     public function scopeForBorrower($query, int $borrowerId)
