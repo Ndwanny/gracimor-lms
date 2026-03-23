@@ -70,7 +70,7 @@ class UpdateOverdueStatusesCommand extends Command
         $this->line('  Step 1: Marking overdue instalment rows...');
 
         $query = LoanSchedule::query()
-            ->whereIn('status', ['pending', 'partial'])
+            ->whereIn('status', ['pending', 'partial', 'due'])
             ->where('due_date', '<', now()->startOfDay())
             ->whereHas('loan', fn ($q) => $q->whereIn('status', ['active', 'overdue']))
             ->with('loan:id,loan_number');
@@ -130,11 +130,11 @@ class UpdateOverdueStatusesCommand extends Command
                     $loan->update(['status' => 'overdue']);
 
                     LoanStatusHistory::create([
-                        'loan_id'         => $loan->id,
-                        'previous_status' => 'active',
-                        'new_status'      => 'overdue',
-                        'notes'           => 'Auto-marked overdue by system — one or more instalments past due.',
-                        'changed_by'      => null, // system transition
+                        'loan_id'     => $loan->id,
+                        'from_status' => 'active',
+                        'to_status'   => 'overdue',
+                        'notes'       => 'Auto-marked overdue by system — one or more instalments past due.',
+                        'changed_by'  => null,
                     ]);
                 });
             } catch (\Throwable $e) {
