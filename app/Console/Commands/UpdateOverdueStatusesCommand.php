@@ -101,7 +101,8 @@ class UpdateOverdueStatusesCommand extends Command
         $this->line("    → {$this->counts['schedules_marked_overdue']} instalment rows marked overdue.");
     }
 
-    // ── Step 2: Mark loans as overdue where any instalment is overdue ─────────
+    // ── Step 2: Mark loans as overdue where any instalment is overdue
+    //           OR the loan term has ended with an outstanding balance ──────────
 
     private function step2MarkOverdueLoans(?string $loanId): void
     {
@@ -109,7 +110,15 @@ class UpdateOverdueStatusesCommand extends Command
 
         $query = Loan::query()
             ->where('status', 'active')
-            ->whereHas('loanSchedule', fn ($q) => $q->where('status', 'overdue'));
+            ->where(function ($q) {
+                // Has at least one overdue instalment row
+                $q->whereHas('loanSchedule', fn ($s) => $s->where('status', 'overdue'))
+                  // OR maturity date has passed and balance still outstanding
+                  ->orWhere(function ($q2) {
+                      $q2->where('maturity_date', '<', now()->startOfDay())
+                         ->whereHas('loanBalance', fn ($b) => $b->where('total_outstanding', '>', 0));
+                  });
+            });
 
         if ($loanId) {
             $query->where('id', $loanId);
@@ -133,7 +142,7 @@ class UpdateOverdueStatusesCommand extends Command
                         'loan_id'     => $loan->id,
                         'from_status' => 'active',
                         'to_status'   => 'overdue',
-                        'notes'       => 'Auto-marked overdue by system — one or more instalments past due.',
+                        'notes'       => 'Auto-marked overdue by system — instalment(s) past due or loan term ended with outstanding balance.',
                         'changed_by'  => null,
                     ]);
                 });
