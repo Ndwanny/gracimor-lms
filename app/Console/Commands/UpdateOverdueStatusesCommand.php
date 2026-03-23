@@ -101,24 +101,17 @@ class UpdateOverdueStatusesCommand extends Command
         $this->line("    → {$this->counts['schedules_marked_overdue']} instalment rows marked overdue.");
     }
 
-    // ── Step 2: Mark loans as overdue where any instalment is overdue
-    //           OR the loan term has ended with an outstanding balance ──────────
+    // ── Step 2: Mark loans as overdue only when the loan term has ended
+    //           and the borrower has not fully settled the loan ──────────────────
 
     private function step2MarkOverdueLoans(?string $loanId): void
     {
-        $this->line('  Step 2: Marking loans as overdue...');
+        $this->line('  Step 2: Marking loans as overdue (past maturity with balance)...');
 
         $query = Loan::query()
             ->where('status', 'active')
-            ->where(function ($q) {
-                // Has at least one overdue instalment row
-                $q->whereHas('loanSchedule', fn ($s) => $s->where('status', 'overdue'))
-                  // OR maturity date has passed and balance still outstanding
-                  ->orWhere(function ($q2) {
-                      $q2->where('maturity_date', '<', now()->startOfDay())
-                         ->whereHas('loanBalance', fn ($b) => $b->where('total_outstanding', '>', 0));
-                  });
-            });
+            ->where('maturity_date', '<', now()->startOfDay())
+            ->whereHas('loanBalance', fn ($b) => $b->where('total_outstanding', '>', 0));
 
         if ($loanId) {
             $query->where('id', $loanId);
@@ -142,7 +135,7 @@ class UpdateOverdueStatusesCommand extends Command
                         'loan_id'     => $loan->id,
                         'from_status' => 'active',
                         'to_status'   => 'overdue',
-                        'notes'       => 'Auto-marked overdue by system — instalment(s) past due or loan term ended with outstanding balance.',
+                        'notes'       => 'Auto-marked overdue by system — loan term has ended with outstanding balance.',
                         'changed_by'  => null,
                     ]);
                 });

@@ -17,19 +17,14 @@ class OverdueController extends Controller
     // ──────────────────────────────────────────────────────────────────────────
     public function stats(): JsonResponse
     {
-        $daysSubq = DB::table('loan_schedule')
-            ->selectRaw('loan_id, DATEDIFF(NOW(), MIN(due_date)) as days_overdue')
-            ->where('status', 'overdue')
-            ->groupBy('loan_id');
-
+        // days_overdue = days since maturity_date for true overdue loans
         $rows = Loan::overdue()
             ->join('loan_balances', 'loans.id', '=', 'loan_balances.loan_id')
-            ->leftJoinSub($daysSubq, 'od', 'loans.id', '=', 'od.loan_id')
             ->select(
                 'loan_balances.total_outstanding',
                 'loan_balances.penalty_outstanding',
                 'loans.monthly_instalment',
-                DB::raw('COALESCE(od.days_overdue, 0) as days_overdue'),
+                DB::raw('DATEDIFF(NOW(), loans.maturity_date) as days_overdue'),
             )
             ->get();
 
@@ -101,10 +96,7 @@ class OverdueController extends Controller
             ];
             if (isset($ranges[$severity])) {
                 [$min, $max] = $ranges[$severity];
-                $query->whereHas('loanSchedule', fn ($q) =>
-                    $q->where('status', 'overdue')
-                       ->whereBetween(DB::raw('DATEDIFF(NOW(), due_date)'), [$min, $max])
-                );
+                $query->whereBetween(DB::raw('DATEDIFF(NOW(), maturity_date)'), [$min, $max]);
             }
         }
 
@@ -113,14 +105,9 @@ class OverdueController extends Controller
             ? 'loan_balances.total_outstanding'
             : 'days_overdue';
 
-        $daysSubq = DB::table('loan_schedule')
-            ->selectRaw('loan_id, DATEDIFF(NOW(), MIN(due_date)) as days_overdue')
-            ->where('status', 'overdue')
-            ->groupBy('loan_id');
-
+        // days_overdue = days since maturity_date (loan term ended, borrower hasn't settled)
         $query->join('loan_balances', 'loans.id', '=', 'loan_balances.loan_id')
-              ->leftJoinSub($daysSubq, 'overdue_days', 'loans.id', '=', 'overdue_days.loan_id')
-              ->select('loans.*', DB::raw('COALESCE(overdue_days.days_overdue, 0) as days_overdue'))
+              ->select('loans.*', DB::raw('DATEDIFF(NOW(), loans.maturity_date) as days_overdue'))
               ->orderBy($sortBy, $sortDir);
 
         return response()->json($query->paginate($request->per_page ?? 25));
