@@ -1355,6 +1355,7 @@ body { overflow-x: hidden; }
 
     <div class="view-tabs">
       <button class="view-tab" :class="view==='overview' && 'active'" @click="view='overview'">Overview</button>
+      <button class="view-tab" :class="view==='past_due' && 'active'" @click="view='past_due'">Past-Due Instalments <template x-if="stats.past_due?.count > 0"><span style="background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px" x-text="stats.past_due.count"></span></template></button>
       <button class="view-tab" :class="view==='loans' && 'active'" @click="view='loans'">Overdue Loans</button>
       <button class="view-tab" :class="view==='detail' && 'active'" @click="view='detail'">Loan Detail</button>
       <button class="view-tab" :class="view==='collections' && 'active'" @click="view='collections'">Collections</button>
@@ -1549,6 +1550,81 @@ body { overflow-x: hidden; }
                 </tr>
               </template>
             </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+
+    <!-- ══ PAST-DUE INSTALMENTS VIEW ═══════════════════════════════════ -->
+    <template x-if="view==='past_due'">
+      <div class="fade-up">
+        <div class="section-header" style="margin-bottom:16px">
+          <div>
+            <div class="section-title">Past-Due Instalments</div>
+            <div class="section-sub" x-text="pastDueRows.length + ' unpaid instalment' + (pastDueRows.length===1?'':'s') + ' with due dates on or before today'"></div>
+          </div>
+          <button class="topbar-btn outline" @click="loadPastDue()" style="margin-left:auto">↻ Refresh</button>
+        </div>
+
+        <div x-show="pastDueLoading" style="text-align:center;padding:40px;color:var(--slate);font-size:13px">Loading…</div>
+
+        <div x-show="!pastDueLoading" class="table-wrap">
+          <table class="overdue-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Borrower</th>
+                <th>Loan</th>
+                <th>Instalment</th>
+                <th>Due Date</th>
+                <th class="r">Principal</th>
+                <th class="r">Interest</th>
+                <th class="r">Total Due</th>
+                <th class="r">Paid</th>
+                <th class="r">Balance</th>
+                <th>Days Overdue</th>
+                <th>Officer</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(r, idx) in pastDueRows" :key="r.id">
+                <tr>
+                  <td class="mono xs" x-text="idx+1"></td>
+                  <td>
+                    <div style="font-size:13px;font-weight:600" x-text="r.borrower"></div>
+                    <div class="mono" style="font-size:10px;color:var(--slate)" x-text="r.borrower_number||''"></div>
+                  </td>
+                  <td class="mono xs" x-text="r.loan_number"></td>
+                  <td class="mono xs" x-text="'#' + r.instalment_number"></td>
+                  <td class="mono xs" x-text="r.due_date ? new Date(r.due_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'"></td>
+                  <td class="r mono xs" x-text="'K '+(parseFloat(r.principal_portion)||0).toLocaleString()"></td>
+                  <td class="r mono xs" x-text="'K '+(parseFloat(r.interest_portion)||0).toLocaleString()"></td>
+                  <td class="r mono xs" style="font-weight:700" x-text="'K '+(parseFloat(r.total_due)||0).toLocaleString()"></td>
+                  <td class="r mono xs" x-text="'K '+(parseFloat(r.amount_paid)||0).toLocaleString()"></td>
+                  <td class="r mono xs" style="color:var(--red);font-weight:700" x-text="'K '+((parseFloat(r.total_due)||0)-(parseFloat(r.amount_paid)||0)).toLocaleString()"></td>
+                  <td>
+                    <span :style="`background:${r.days_overdue>=90?'rgba(127,29,29,.3)':r.days_overdue>=60?'rgba(185,28,28,.25)':r.days_overdue>=30?'rgba(239,68,68,.2)':'rgba(245,158,11,.2)'};color:${r.days_overdue>=60?'#fca5a5':'var(--amber)'};padding:3px 7px;border-radius:5px;font-size:11px;font-weight:700`" x-text="r.days_overdue + 'd'"></span>
+                  </td>
+                  <td style="font-size:12px;color:var(--slate)" x-text="r.officer"></td>
+                  <td>
+                    <span :style="`background:${r.status==='overdue'?'rgba(239,68,68,.15)':'rgba(245,158,11,.15)'};color:${r.status==='overdue'?'var(--red)':'var(--amber)'};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;text-transform:uppercase`" x-text="r.status"></span>
+                  </td>
+                </tr>
+              </template>
+              <tr x-show="!pastDueLoading && pastDueRows.length===0">
+                <td colspan="13" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">No past-due instalments found.</td>
+              </tr>
+            </tbody>
+            <tfoot x-show="pastDueRows.length > 0">
+              <tr style="background:rgba(239,68,68,.08);font-weight:700">
+                <td colspan="7" style="padding:10px 12px;font-size:12px;color:var(--slate)">Totals</td>
+                <td class="r mono xs" style="color:var(--red)" x-text="'K '+pastDueRows.reduce((s,r)=>s+(parseFloat(r.total_due)||0),0).toLocaleString()"></td>
+                <td class="r mono xs" x-text="'K '+pastDueRows.reduce((s,r)=>s+(parseFloat(r.amount_paid)||0),0).toLocaleString()"></td>
+                <td class="r mono xs" style="color:var(--red)" x-text="'K '+pastDueRows.reduce((s,r)=>s+((parseFloat(r.total_due)||0)-(parseFloat(r.amount_paid)||0)),0).toLocaleString()"></td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -2258,6 +2334,7 @@ function overdueApp() {
     ],
 
     allLoans: [],
+    pastDueRows: [], pastDueLoading: false,
 
     heatmapBars: [],
     dailyAccrual: 0,
@@ -2395,7 +2472,9 @@ function overdueApp() {
     },
 
     async init() {
-      await Promise.all([this.loadStats(), this.loadOverdueLoans(), this.loadCollectionQueue()]);
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab) this.view = tab;
+      await Promise.all([this.loadStats(), this.loadOverdueLoans(), this.loadCollectionQueue(), this.loadPastDue()]);
     },
 
     async loadOverdueLoans() {
@@ -2455,6 +2534,16 @@ function overdueApp() {
         const res = await fetch('/api/stats', { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
         if (res.ok) this.stats = await res.json();
       } catch {}
+    },
+
+    async loadPastDue() {
+      this.pastDueLoading = true;
+      const token = localStorage.getItem('lms_token');
+      try {
+        const res = await fetch('/api/dashboard/due-instalments', { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
+        if (res.ok) this.pastDueRows = await res.json();
+      } catch {}
+      this.pastDueLoading = false;
     },
 
     fmtK(n) {

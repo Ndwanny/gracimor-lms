@@ -152,23 +152,32 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
         ]);
     });
 
-    // ── Dashboard Due Instalments (today + past-due unpaid) ──────────────────
+    // ── Past-Due Instalments (all unpaid with due_date <= today) ─────────────
     Route::get('dashboard/due-instalments', function () {
         $rows = \App\Models\LoanSchedule::whereDate('due_date', '<=', today())
             ->whereNotIn('status', ['paid'])
             ->whereHas('loan', fn ($q) => $q->whereIn('status', ['active', 'overdue']))
-            ->with(['loan:id,loan_number,monthly_instalment', 'loan.borrower:id,first_name,last_name'])
+            ->with([
+                'loan:id,loan_number,monthly_instalment,applied_by',
+                'loan.borrower:id,first_name,last_name,borrower_number',
+                'loan.appliedBy:id,name',
+            ])
             ->orderBy('due_date', 'asc')
-            ->limit(20)
             ->get()
             ->map(fn ($s) => [
-                'id'           => $s->id,
-                'loan_number'  => $s->loan?->loan_number,
-                'borrower'     => trim(($s->loan?->borrower?->first_name ?? '') . ' ' . ($s->loan?->borrower?->last_name ?? '')),
-                'due_date'     => $s->due_date,
-                'total_due'    => $s->total_due,
-                'status'       => $s->status,
-                'days_overdue' => now()->diffInDays(\Carbon\Carbon::parse($s->due_date), false) * -1,
+                'id'               => $s->id,
+                'instalment_number'=> $s->instalment_number,
+                'loan_number'      => $s->loan?->loan_number,
+                'borrower'         => trim(($s->loan?->borrower?->first_name ?? '') . ' ' . ($s->loan?->borrower?->last_name ?? '')),
+                'borrower_number'  => $s->loan?->borrower?->borrower_number,
+                'due_date'         => $s->due_date,
+                'principal_portion'=> $s->principal_portion,
+                'interest_portion' => $s->interest_portion,
+                'total_due'        => $s->total_due,
+                'amount_paid'      => $s->amount_paid,
+                'status'           => $s->status,
+                'officer'          => $s->loan?->appliedBy?->name ?? '—',
+                'days_overdue'     => (int) now()->diffInDays(\Carbon\Carbon::parse($s->due_date), false) * -1,
             ]);
         return response()->json($rows);
     });
