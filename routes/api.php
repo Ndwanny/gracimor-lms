@@ -158,7 +158,7 @@ Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
             ->whereNotIn('status', ['paid'])
             ->whereHas('loan', fn ($q) => $q->whereIn('status', ['active', 'overdue']))
             ->with([
-                'loan:id,loan_number,monthly_instalment,applied_by',
+                'loan:id,loan_number,monthly_instalment,applied_by,borrower_id',
                 'loan.borrower:id,first_name,last_name,borrower_number',
                 'loan.appliedBy:id,name',
             ])

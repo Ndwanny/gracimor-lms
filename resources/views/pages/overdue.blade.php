@@ -1561,9 +1561,17 @@ body { overflow-x: hidden; }
         <div class="section-header" style="margin-bottom:16px">
           <div>
             <div class="section-title">Past-Due Instalments</div>
-            <div class="section-sub" x-text="pastDueRows.length + ' unpaid instalment' + (pastDueRows.length===1?'':'s') + ' with due dates on or before today'"></div>
+            <div class="section-sub" x-text="pastDueFiltered.length + ' of ' + pastDueRows.length + ' unpaid instalment' + (pastDueRows.length===1?'':'s') + ' with due dates on or before today'"></div>
           </div>
           <button class="topbar-btn outline" @click="loadPastDue()" style="margin-left:auto">↻ Refresh</button>
+        </div>
+
+        <!-- Search bar -->
+        <div class="filters-bar" style="margin-bottom:16px">
+          <div class="search-wrap">
+            <span class="icon">🔍</span>
+            <input type="text" class="search-input" placeholder="Search borrower name, loan number, borrower ID…" x-model="pastDueSearch">
+          </div>
         </div>
 
         <div x-show="pastDueLoading" style="text-align:center;padding:40px;color:var(--slate);font-size:13px">Loading…</div>
@@ -1588,7 +1596,7 @@ body { overflow-x: hidden; }
               </tr>
             </thead>
             <tbody>
-              <template x-for="(r, idx) in pastDueRows" :key="r.id">
+              <template x-for="(r, idx) in pastDueFiltered" :key="r.id">
                 <tr>
                   <td class="mono xs" x-text="idx+1"></td>
                   <td>
@@ -1612,16 +1620,16 @@ body { overflow-x: hidden; }
                   </td>
                 </tr>
               </template>
-              <tr x-show="!pastDueLoading && pastDueRows.length===0">
-                <td colspan="13" style="text-align:center;padding:32px;color:var(--slate);font-size:13px">No past-due instalments found.</td>
+              <tr x-show="!pastDueLoading && pastDueFiltered.length===0">
+                <td colspan="13" style="text-align:center;padding:32px;color:var(--slate);font-size:13px" x-text="pastDueSearch ? 'No results for &quot;'+pastDueSearch+'&quot;' : 'No past-due instalments found.'"></td>
               </tr>
             </tbody>
-            <tfoot x-show="pastDueRows.length > 0">
+            <tfoot x-show="pastDueFiltered.length > 0">
               <tr style="background:rgba(239,68,68,.08);font-weight:700">
-                <td colspan="7" style="padding:10px 12px;font-size:12px;color:var(--slate)">Totals</td>
-                <td class="r mono xs" style="color:var(--red)" x-text="'K '+pastDueRows.reduce((s,r)=>s+(parseFloat(r.total_due)||0),0).toLocaleString()"></td>
-                <td class="r mono xs" x-text="'K '+pastDueRows.reduce((s,r)=>s+(parseFloat(r.amount_paid)||0),0).toLocaleString()"></td>
-                <td class="r mono xs" style="color:var(--red)" x-text="'K '+pastDueRows.reduce((s,r)=>s+((parseFloat(r.total_due)||0)-(parseFloat(r.amount_paid)||0)),0).toLocaleString()"></td>
+                <td colspan="7" style="padding:10px 12px;font-size:12px;color:var(--slate)" x-text="pastDueFiltered.length + ' row' + (pastDueFiltered.length===1?'':'s')"></td>
+                <td class="r mono xs" style="color:var(--red)" x-text="'K '+pastDueFiltered.reduce((s,r)=>s+(parseFloat(r.total_due)||0),0).toLocaleString()"></td>
+                <td class="r mono xs" x-text="'K '+pastDueFiltered.reduce((s,r)=>s+(parseFloat(r.amount_paid)||0),0).toLocaleString()"></td>
+                <td class="r mono xs" style="color:var(--red)" x-text="'K '+pastDueFiltered.reduce((s,r)=>s+((parseFloat(r.total_due)||0)-(parseFloat(r.amount_paid)||0)),0).toLocaleString()"></td>
                 <td colspan="3"></td>
               </tr>
             </tfoot>
@@ -2334,7 +2342,7 @@ function overdueApp() {
     ],
 
     allLoans: [],
-    pastDueRows: [], pastDueLoading: false,
+    pastDueRows: [], pastDueLoading: false, pastDueSearch: '',
 
     heatmapBars: [],
     dailyAccrual: 0,
@@ -2352,6 +2360,17 @@ function overdueApp() {
     collectionsLog: [],
 
     // ── Computed ────────────────────────────────────────────────────
+    get pastDueFiltered() {
+      const q = (this.pastDueSearch || '').toLowerCase().trim();
+      if (!q) return this.pastDueRows;
+      return this.pastDueRows.filter(r =>
+        (r.borrower||'').toLowerCase().includes(q) ||
+        (r.loan_number||'').toLowerCase().includes(q) ||
+        (r.borrower_number||'').toLowerCase().includes(q) ||
+        (r.officer||'').toLowerCase().includes(q)
+      );
+    },
+
     get topOverdue() {
       return [...this.allLoans].sort((a, b) => b.totalArrears - a.totalArrears).slice(0, 5);
     },
