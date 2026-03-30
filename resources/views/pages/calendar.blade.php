@@ -716,19 +716,6 @@ body { overflow-x: hidden; }
       <div class="cal-main">
 
         <!-- Overdue strip -->
-        <div class="overdue-strip" x-show="overdueCount>0">
-          <div>⚠️</div>
-          <div>
-            <div class="flex aic g12">
-              <div class="overdue-count" x-text="overdueCount + ' overdue'"></div>
-              <div class="overdue-amt" x-text="overdueTotal + ' in arrears'"></div>
-            </div>
-            <div class="xs" style="color:rgba(252,165,165,.7);margin-top:2px">Penalty accruing at 5% of overdue instalment per occurrence</div>
-          </div>
-          <div style="margin-left:auto;display:flex;gap:8px">
-            <button class="btn-sm" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:7px;cursor:pointer;padding:5px 12px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif" @click="calView='list';filterOverdue=true">View All Overdue</button>
-          </div>
-        </div>
 
         <!-- Month navigation -->
         <div class="cal-nav">
