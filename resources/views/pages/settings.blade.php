@@ -863,7 +863,6 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       <button class="ttab" :class="tab==='users'     && 'on'" @click="tab='users'">Users</button>
       <button class="ttab" :class="tab==='audit'     && 'on'" @click="tab='audit'">Audit Log</button>
       <button class="ttab" :class="tab==='templates' && 'on'" @click="tab='templates'">SMS Templates</button>
-      <button class="ttab" :class="tab==='agreement'  && 'on'" @click="tab='agreement'">Loan Agreement</button>
       <button class="ttab" :class="tab==='import'     && 'on'" @click="tab='import'">Import / Export</button>
     </div>
     <div class="sep"></div>
@@ -1447,19 +1446,9 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       </div>
     </template>
 
-    <!-- ██ LOAN AGREEMENT ██ -->
-    <template x-if="tab==='agreement'">
-      <div class="fade">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-          <div>
-            <div style="font-family:'Spectral',serif;font-size:18px;font-weight:700">Loan Agreement Forms</div>
-            <div style="font-size:13px;color:var(--slate);margin-top:2px">Generate, preview and save a signed loan agreement for any borrower</div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="tbtn ghost" @click="agrReset()">↺ Clear Form</button>
-            <button class="tbtn copper" @click="agrPrint()">🖨 Save as PDF</button>
-          </div>
-        </div>
+    <!-- ██ LOAN AGREEMENT — removed ██ -->
+    <template x-if="false">
+      <div>
 
         <div class="edit-layout">
           <!-- LEFT: Input form -->
