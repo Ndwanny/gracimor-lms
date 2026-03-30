@@ -2188,7 +2188,15 @@ function app(){
           body: JSON.stringify(this.newUser),
         });
         const data = await res.json();
-        if (!res.ok){ this.toast('err','✗', data.message || 'Could not create user.'); return; }
+        if (!res.ok){
+          if (data.errors) {
+            const msgs = Object.values(data.errors).flat().join(' ');
+            this.toast('err','✗', msgs);
+          } else {
+            this.toast('err','✗', data.message || 'Could not create user.');
+          }
+          return;
+        }
         this.users.unshift(data.user);
         this.showNewUser = false;
         this.newUser = { name:'', email:'', role:'', phone:'', password:'' };
